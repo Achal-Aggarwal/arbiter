@@ -28,6 +28,7 @@ public class ActionType {
     private String tag;
     private String name;
     private String xmlns;
+    private String cred;
     private Map<String, List<String>> defaultArgs;
     private Map<String, String> properties;
     private Map<String, String> defaultInterpolations;
@@ -56,6 +57,14 @@ public class ActionType {
 
     public void setXmlns(String xmlns) {
         this.xmlns = xmlns;
+    }
+
+    public String getCred() {
+        return cred;
+    }
+
+    public void setCred(String cred) {
+        this.cred = cred;
     }
 
     public Map<String, List<String>> getDefaultArgs() {
@@ -121,6 +130,9 @@ public class ActionType {
         if (name != null ? !name.equals(that.name) : that.name != null) {
             return false;
         }
+        if (cred != null ? !cred.equals(that.cred) : that.cred != null) {
+            return false;
+        }
         if (xmlns != null ? !xmlns.equals(that.xmlns) : that.xmlns != null) {
             return false;
         }
@@ -142,6 +154,7 @@ public class ActionType {
         result = 31 * result + (defaultArgs != null ? defaultArgs.hashCode() : 0);
         result = 31 * result + (properties != null ? properties.hashCode() : 0);
         result = 31 * result + (defaultInterpolations != null ? defaultInterpolations.hashCode() : 0);
+        result = 31 * result + (cred != null ? cred.hashCode() : 0);
         result = 31 * result + (lowPrecedence ? 1 : 0);
         result = 31 * result + configurationPosition;
         return result;
@@ -153,6 +166,7 @@ public class ActionType {
                 "tag='" + tag + '\'' +
                 ", name='" + name + '\'' +
                 ", xmlns='" + xmlns + '\'' +
+                ", cred='" + cred + '\'' +
                 ", defaultArgs=" + defaultArgs +
                 ", properties=" + properties +
                 ", defaultInterpolations=" + defaultInterpolations +

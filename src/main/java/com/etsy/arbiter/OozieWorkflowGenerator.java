@@ -87,26 +87,27 @@ public class OozieWorkflowGenerator {
         String currentDateString = DATE_FORMAT.format(currentDate);
 
         for (Workflow workflow : workflows) {
-            String outputDir = outputBase + "/" + workflow.getName();
-            File outputDirFile = new File(outputDir);
+            File outputDirFile = new File(outputBase);
             FileUtils.forceMkdir(outputDirFile);
             DirectedAcyclicGraph<Action, DefaultEdge> workflowGraph = null;
 
             try {
-                workflowGraph = WorkflowGraphBuilder.buildWorkflowGraph(workflow, config, outputDir, generateGraphviz, graphvizFormat);
+                workflowGraph = WorkflowGraphBuilder.buildWorkflowGraph(workflow, config, outputBase, generateGraphviz, graphvizFormat);
             } catch (WorkflowGraphException w) {
                 LOG.error("Unable to generate workflow", w);
                 System.exit(1);
             }
 
             if (generateGraphviz) {
-                GraphvizGenerator.generateGraphviz(workflowGraph, outputDir + "/" + workflow.getName() + ".dot", graphvizFormat);
+                GraphvizGenerator.generateGraphviz(workflowGraph, outputBase + "/" + workflow.getName() + ".dot", graphvizFormat);
             }
 
             Document xmlDoc = builder.newDocument();
 
             Directives directives = new Directives();
             createRootElement(workflow.getName(), directives);
+
+            addCredentials(workflow.getCredentials(), directives);
 
             Action kill = getActionByType(workflowGraph, "kill");
             Action end = getActionByType(workflowGraph, "end");
@@ -179,6 +180,23 @@ public class OozieWorkflowGenerator {
             }
             writeDocument(outputDirFile, xmlDoc, transformer, workflow.getName(), currentDateString);
         }
+    }
+
+    private void addCredentials(List<Credential> credentials, Directives directives) {
+        directives.add("credentials");
+
+        for (Credential credential : credentials) {
+            directives
+              .add("credential")
+              .attr("name", credential.getName())
+              .attr("type", credential.getType());
+
+            createConfigurationElement(credential.getProperties(), directives);
+
+            directives.up();
+        }
+
+        directives.up();
     }
 
     /**
@@ -384,7 +402,7 @@ public class OozieWorkflowGenerator {
      */
     private void writeDocument(File outputDir, Document xmlDoc, Transformer transformer, String name, String currentDateString) throws TransformerException, IOException {
         DOMSource source = new DOMSource(xmlDoc);
-        File outputFile = new File(outputDir, "workflow.xml");
+        File outputFile = new File(outputDir, name + ".xml");
         StreamResult result = new StreamResult(outputFile);
         transformer.transform(source, result);
 

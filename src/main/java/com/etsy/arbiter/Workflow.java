@@ -36,6 +36,7 @@ public class Workflow {
         Constructor workflowConstructor = new Constructor(Workflow.class);
         TypeDescription workflowDescription = new TypeDescription(Workflow.class);
         workflowDescription.putListPropertyType("actions", Action.class);
+        workflowDescription.putListPropertyType("credentials", Credential.class);
         workflowConstructor.addTypeDescription(workflowDescription);
 
         return workflowConstructor;
@@ -44,6 +45,8 @@ public class Workflow {
     private String name;
 
     private List<Action> actions;
+
+    private List<Credential> credentials;
 
     private Action errorHandler;
 
@@ -61,6 +64,14 @@ public class Workflow {
 
     public void setActions(List<Action> actions) {
         this.actions = actions;
+    }
+
+    public List<Credential> getCredentials() {
+        return credentials;
+    }
+
+    public void setCredentials(List<Credential> credentials) {
+        this.credentials = credentials;
     }
 
     public Action getErrorHandler() {
@@ -85,6 +96,9 @@ public class Workflow {
         if (actions != null ? !actions.equals(workflow.actions) : workflow.actions != null) {
             return false;
         }
+        if (credentials != null ? !credentials.equals(workflow.credentials) : workflow.credentials != null) {
+            return false;
+        }
         if (errorHandler != null ? !errorHandler.equals(workflow.errorHandler) : workflow.errorHandler != null) {
             return false;
         }
@@ -99,6 +113,7 @@ public class Workflow {
     public int hashCode() {
         int result = name != null ? name.hashCode() : 0;
         result = 31 * result + (actions != null ? actions.hashCode() : 0);
+        result = 31 * result + (credentials != null ? credentials.hashCode() : 0);
         result = 31 * result + (errorHandler != null ? errorHandler.hashCode() : 0);
         return result;
     }
@@ -107,6 +122,7 @@ public class Workflow {
     public String toString() {
         return "Workflow{" +
                 "name='" + name + '\'' +
+                ", credentials=" + credentials +
                 ", actions=" + actions +
                 ", errorHandler=" + errorHandler +
                 '}';
