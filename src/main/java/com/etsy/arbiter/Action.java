@@ -26,6 +26,7 @@ import java.util.*;
 public class Action {
     private String name;
     private String type;
+    private String cred;
     private String forceOk;
     private String forceError;
     private Set<String> dependencies;
@@ -112,6 +113,14 @@ public class Action {
         this.configurationProperties = configurationProperties;
     }
 
+    public String getCred() {
+        return cred;
+    }
+
+    public void setCred(String cred) {
+        this.cred = cred;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -127,6 +136,9 @@ public class Action {
             return false;
         }
         if (type != null ? !type.equals(action.type) : action.type != null) {
+            return false;
+        }
+        if (cred != null ? !cred.equals(action.cred) : action.cred != null) {
             return false;
         }
         if (forceOk != null ? !forceOk.equals(action.forceOk) : action.forceOk != null) {
@@ -152,6 +164,7 @@ public class Action {
     public int hashCode() {
         int result = name != null ? name.hashCode() : 0;
         result = 31 * result + (type != null ? type.hashCode() : 0);
+        result = 31 * result + (cred != null ? cred.hashCode() : 0);
         result = 31 * result + (forceOk != null ? forceOk.hashCode() : 0);
         result = 31 * result + (forceError != null ? forceError.hashCode() : 0);
         result = 31 * result + (dependencies != null ? dependencies.hashCode() : 0);

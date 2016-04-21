@@ -213,6 +213,7 @@ public class OozieWorkflowGenerator {
 
         directives.add("action")
                 .attr("name", action.getName())
+                .attr("cred", action.getCred())
                 .add(type.getTag());
 
         if (type.getXmlns() != null) {
