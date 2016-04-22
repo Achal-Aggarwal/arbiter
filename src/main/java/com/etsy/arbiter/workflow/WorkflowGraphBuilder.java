@@ -51,13 +51,13 @@ public class WorkflowGraphBuilder {
      *
      * @param workflow Arbiter Workflow object
      * @param config Arbiter Config object
-     * @param outputDir Output directory for Graphviz graphs
+     * @param outputFileAbsolutePath Output file path without extension for Graphviz graphs
      * @param generateGraphviz Indicate if Graphviz graphs should be generated for workflows
      * @param graphvizFormat The format in which Graphviz graphs should be generated if enabled
      * @return DirectedAcyclicGraph DAG of the workflow
      * @throws WorkflowGraphException
      */
-    public static DirectedAcyclicGraph<Action, DefaultEdge> buildWorkflowGraph(Workflow workflow, Config config, String outputDir, boolean generateGraphviz, String graphvizFormat) throws WorkflowGraphException {
+    public static DirectedAcyclicGraph<Action, DefaultEdge> buildWorkflowGraph(Workflow workflow, Config config, String outputFileAbsolutePath, boolean generateGraphviz, String graphvizFormat) throws WorkflowGraphException {
         forkCount = 0;
         Map<String, Action> actionsByName = new HashMap<>();
         List<Action> workflowActions = workflow.getActions();
@@ -95,7 +95,7 @@ public class WorkflowGraphBuilder {
         }
 
         if (generateGraphviz) {
-            GraphvizGenerator.generateGraphviz(inputGraph, outputDir + "/" + workflow.getName() + "-input.dot", graphvizFormat);
+            GraphvizGenerator.generateGraphviz(inputGraph, outputFileAbsolutePath + "-input.dot", graphvizFormat);
         }
 
         // Final DAG we will be returning

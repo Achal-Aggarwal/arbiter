@@ -70,15 +70,12 @@ public class OozieWorkflowGenerator {
 
     /**
      * Generate Oozie workflows from Arbiter workflows
-     *
-     * @param outputBase The directory in which to output the Oozie workflows
      * @param workflows The workflows to convert
      * @param generateGraphviz Indicate if Graphviz graphs should be generated for workflows
      * @param graphvizFormat The format in which Graphviz graphs should be generated if enabled
      */
-    public void generateOozieWorkflows(String outputBase, List<Workflow> workflows, boolean generateGraphviz, String graphvizFormat) throws IOException, ParserConfigurationException, TransformerException {
-        File outputBaseFile = new File(outputBase);
-        FileUtils.forceMkdir(outputBaseFile);
+    public void generateOozieWorkflows(Map<File, Workflow> workflows, boolean generateGraphviz, String graphvizFormat) throws IOException, ParserConfigurationException, TransformerException {
+
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
         TransformerFactory transformerFactory = TransformerFactory.newInstance();
@@ -88,20 +85,30 @@ public class OozieWorkflowGenerator {
         Date currentDate = new Date();
         String currentDateString = DATE_FORMAT.format(currentDate);
 
-        for (Workflow workflow : workflows) {
-            File outputDirFile = new File(outputBase);
-            FileUtils.forceMkdir(outputDirFile);
+        for (File inputFile : workflows.keySet()) {
+            String parentDir = inputFile.getParentFile().getAbsolutePath();
+            String inputFileName = inputFile.getName();
+            inputFileName = inputFileName.substring(0, inputFileName.lastIndexOf("."));
+            String outputFileAbsolutePath = new File(parentDir, inputFileName).getAbsolutePath();
+
+            File dotFilesBaseDir = new File(parentDir, "dot");
+            FileUtils.forceMkdir(dotFilesBaseDir);
+            String outputDotFilesAbsolutePath = new File(dotFilesBaseDir, inputFileName).getAbsolutePath();
+
+            Workflow workflow = workflows.get(inputFile);
+
+
             DirectedAcyclicGraph<Action, DefaultEdge> workflowGraph = null;
 
             try {
-                workflowGraph = WorkflowGraphBuilder.buildWorkflowGraph(workflow, config, outputBase, generateGraphviz, graphvizFormat);
+                workflowGraph = WorkflowGraphBuilder.buildWorkflowGraph(workflow, config, outputDotFilesAbsolutePath, generateGraphviz, graphvizFormat);
             } catch (WorkflowGraphException w) {
                 LOG.error("Unable to generate workflow", w);
                 System.exit(1);
             }
 
             if (generateGraphviz) {
-                GraphvizGenerator.generateGraphviz(workflowGraph, outputBase + "/" + workflow.getName() + ".dot", graphvizFormat);
+                GraphvizGenerator.generateGraphviz(workflowGraph, outputDotFilesAbsolutePath + ".dot", graphvizFormat);
             }
 
             Document xmlDoc = builder.newDocument();
@@ -181,14 +188,14 @@ public class OozieWorkflowGenerator {
             } catch (ImpossibleModificationException e) {
                 throw new RuntimeException(e);
             }
-            writeDocument(outputDirFile, xmlDoc, transformer, workflow.getName(), currentDateString);
+            writeDocument(outputFileAbsolutePath, xmlDoc, transformer, workflow.getName(), currentDateString);
         }
     }
 
     private void addGlobal(Config config, Workflow workflow, Directives directives) {
         Global global = workflow.getGlobal() != null ? workflow.getGlobal() : config.getGlobal();
 
-        if(global == null) {
+        if (global == null) {
             return;
         }
 
@@ -249,7 +256,7 @@ public class OozieWorkflowGenerator {
                 .attr("name", action.getActualName());
 
         String credName = action.getCred() != null ? action.getCred() : type.getCred();
-        if (credName != null){
+        if (credName != null) {
             directives.attr("cred", credName);
         }
 
@@ -288,7 +295,7 @@ public class OozieWorkflowGenerator {
     }
 
     private void addSwitchIfRequired(Action action, Directives directives, Action transition) {
-        if(action.getOnlyIf() == null) {
+        if (action.getOnlyIf() == null) {
             return;
         }
 
@@ -455,7 +462,7 @@ public class OozieWorkflowGenerator {
     /**
      * Write an XML document to a file
      *
-     * @param outputDir The output directory for the XML file. This directory must exist before this method is called
+     * @param outputFileAbsolutePath The output file path for the XML file.
      * @param xmlDoc The document to write out
      * @param transformer The XML transformer used to produce the output
      * @param name The name of the workflow
@@ -463,9 +470,10 @@ public class OozieWorkflowGenerator {
      * @throws TransformerException
      * @throws IOException
      */
-    private void writeDocument(File outputDir, Document xmlDoc, Transformer transformer, String name, String currentDateString) throws TransformerException, IOException {
+    private void writeDocument(String outputFileAbsolutePath, Document xmlDoc, Transformer transformer, String name, String currentDateString) throws TransformerException, IOException {
         DOMSource source = new DOMSource(xmlDoc);
-        File outputFile = new File(outputDir, name + ".xml");
+
+        File outputFile = new File(outputFileAbsolutePath + ".xml");
         StreamResult result = new StreamResult(outputFile);
         transformer.transform(source, result);
 

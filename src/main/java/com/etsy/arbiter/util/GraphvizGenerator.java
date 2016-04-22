@@ -57,7 +57,7 @@ public class GraphvizGenerator {
             @Override
             public String getVertexName(Action o) {
                 // This is the value displayed in the vertices of the generated graph
-                return o.getOnlyIf() ==null ? o.getName() : "if ("+o.getOnlyIf()+")\n"+o.getName();
+                return o.getOnlyIf() == null ? o.getName() : "if (" + o.getOnlyIf() + ")\n" + o.getName();
             }
         }, new EdgeNameProvider<DefaultEdge>() {
             @Override

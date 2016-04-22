@@ -21,6 +21,7 @@ import com.etsy.arbiter.config.ConfigurationMerger;
 import com.etsy.arbiter.exception.ConfigurationException;
 import com.etsy.arbiter.util.YamlReader;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.commons.cli.*;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -28,7 +29,9 @@ import javax.xml.transform.TransformerException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Entry point for Arbiter
@@ -52,27 +55,21 @@ public class Arbiter {
             throw new ParseException("Missing required argument: i");
         }
 
-        if (!parsed.hasOption("o")) {
-            throw new ParseException("Missing required argument: o");
-        }
-
         String[] configFiles = parsed.getOptionValues("c");
         String[] lowPrecedenceConfigFiles = parsed.getOptionValues("l");
-
-        String[] inputFiles = parsed.getOptionValues("i");
-        String outputDir = parsed.getOptionValue("o");
 
         List<Config> parsedConfigFiles = readConfigFiles(".", configFiles, false);
         parsedConfigFiles.addAll(readConfigFiles(".", lowPrecedenceConfigFiles, true));
         Config merged = ConfigurationMerger.mergeConfiguration(parsedConfigFiles);
 
-        List<Workflow> workflows = readWorkflowFiles(inputFiles);
+        String[] inputFiles = parsed.getOptionValues("i");
+        Map<File, Workflow> workflows = readWorkflowFiles(".", inputFiles);
 
         boolean generateGraphviz = parsed.hasOption("g");
         String graphvizFormat = parsed.getOptionValue("g", "svg");
 
         OozieWorkflowGenerator generator = new OozieWorkflowGenerator(merged);
-        generator.generateOozieWorkflows(outputDir, workflows, generateGraphviz, graphvizFormat);
+        generator.generateOozieWorkflows(workflows, generateGraphviz, graphvizFormat);
     }
 
     /**
@@ -81,18 +78,22 @@ public class Arbiter {
      * @param files The list of files to read
      * @return A list of Workflow objects corresponding to the given files
      */
-    public static List<Workflow> readWorkflowFiles(String[] files) {
+    public static Map<File, Workflow> readWorkflowFiles(String baseDir, String[] files) {
         if (files == null) {
-            return Lists.newArrayList();
+            return Maps.newHashMap();
         }
 
         YamlReader<Workflow> reader = new YamlReader<>(Workflow.getYamlConstructor());
 
-        ArrayList<Workflow> result = Lists.newArrayList();
+        HashMap<File, Workflow> result = Maps.newHashMap();
 
         for (String file : files) {
-            File f = new File(file);
-            result.add(reader.read(f));
+            File f = new File(baseDir, file);
+            if (f.isDirectory()) {
+                result.putAll(readWorkflowFiles(f.getAbsolutePath(), f.list()));
+            } else {
+                result.put(f, reader.read(f));
+            }
         }
 
         return result;
@@ -116,7 +117,7 @@ public class Arbiter {
         
         for (String file : files) {
             File f = new File(baseDir, file);
-            if(f.isDirectory()) {
+            if (f.isDirectory()) {
                 result.addAll(readConfigFiles(f.getAbsolutePath(), f.list(), lowPrecedence));
             } else {
                 Config c = reader.read(f);
@@ -150,7 +151,7 @@ public class Arbiter {
                 .withArgName("config")
                 .withLongOpt("config")
                 .hasArgs()
-                .withDescription("Configuration file")
+                .withDescription("Configuration file/dir")
                 .create("c");
 
         Option lowPrecedenceConfig = OptionBuilder
@@ -164,15 +165,8 @@ public class Arbiter {
                 .withArgName("input")
                 .withLongOpt("input")
                 .hasArgs()
-                .withDescription("Input Arbiter workflow file")
+                .withDescription("Input Arbiter workflow file/dir")
                 .create("i");
-
-        Option outputDir = OptionBuilder
-                .withArgName("output")
-                .withLongOpt("output")
-                .hasArg()
-                .withDescription("Output directory")
-                .create("o");
 
         Option help = OptionBuilder
                 .withArgName("help")
@@ -191,7 +185,6 @@ public class Arbiter {
         options.addOption(config)
                 .addOption(lowPrecedenceConfig)
                 .addOption(inputFile)
-                .addOption(outputDir)
                 .addOption(help)
                 .addOption(graphviz);
 

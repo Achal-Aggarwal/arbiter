@@ -21,9 +21,7 @@ import com.etsy.arbiter.config.Config;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.io.FileUtils;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,15 +31,12 @@ import java.util.*;
 import static org.junit.Assert.assertEquals;
 
 public class ArbiterTest {
-    @Rule
-    public TemporaryFolder temporaryFolder = new TemporaryFolder();
-
     @Test
     public void testReadConfigFiles() throws IOException {
         File tempFile = writeToTempFile("testconfig.yaml");
-        String[] configFiles = {tempFile.getAbsolutePath()};
+        String[] configFiles = {tempFile.getName()};
 
-        List<Config> result = Arbiter.readConfigFiles(".", configFiles, false);
+        List<Config> result = Arbiter.readConfigFiles(tempFile.getParent(), configFiles, false);
         assertEquals(1, result.size());
 
         Config expected = new Config();
@@ -68,9 +63,9 @@ public class ArbiterTest {
     @Test
     public void testReadLowPrecedenceConfigFiles() throws IOException {
         File tempFile = writeToTempFile("testconfig.yaml");
-        String[] configFiles = {tempFile.getAbsolutePath()};
+        String[] configFiles = {tempFile.getName()};
 
-        List<Config> result = Arbiter.readConfigFiles(".", configFiles, true);
+        List<Config> result = Arbiter.readConfigFiles(tempFile.getParent(), configFiles, true);
         assertEquals(1, result.size());
 
         Config expected = new Config();
@@ -98,9 +93,9 @@ public class ArbiterTest {
     @Test
     public void testReadWorkflowFiles() throws IOException {
         File tempFile = writeToTempFile("testworkflow.yaml");
-        String[] workflowFiles = {tempFile.getAbsolutePath()};
+        String[] workflowFiles = {tempFile.getName()};
 
-        List<Workflow> result = Arbiter.readWorkflowFiles(workflowFiles);
+        Map<File, Workflow> result = Arbiter.readWorkflowFiles(tempFile.getParent(), workflowFiles);
         assertEquals(1, result.size());
 
         Workflow expected = new Workflow();
@@ -133,7 +128,7 @@ public class ArbiterTest {
         error.setPositionalArgs(args);
         expected.setErrorHandler(error);
 
-        assertEquals(expected, result.get(0));
+        assertEquals(expected, result.get(result.keySet().iterator().next()));
 
     }
 
@@ -143,7 +138,7 @@ public class ArbiterTest {
             throw new RuntimeException("Unable to load resource " + resourceName);
         }
 
-        File tempFile = temporaryFolder.newFile();
+        File tempFile = new File(FileUtils.getTempDirectory(), System.nanoTime() + "");
         FileUtils.copyURLToFile(resource, tempFile);
 
         return tempFile;

@@ -238,7 +238,7 @@ public class ConfigurationMerger {
      * @param <T> The type of values in the map
      * @return A Map representing the merger of all input maps
      */
-    public static <M,T> Map<String, T> mergeMaps(Collection<M> actionTypes, Function<M, Map<String, T>> transformFunction) {
+    public static <M, T> Map<String, T> mergeMaps(Collection<M> actionTypes, Function<M, Map<String, T>> transformFunction) {
         Collection<Map<String, T>> values = Collections2.transform(actionTypes, transformFunction);
         Map<String, T> result = new HashMap<>();
         for (Map<String, T> map : values) {
@@ -256,7 +256,7 @@ public class ConfigurationMerger {
      * @param <T> The type of value being checked
      * @return true if all given ActionTypes have the same value, false otherwise
      */
-    public static <M,T> boolean areAllValuesEqual(Collection<M> actionTypes, Function<M, T> transformFunction) {
+    public static <M, T> boolean areAllValuesEqual(Collection<M> actionTypes, Function<M, T> transformFunction) {
         Collection<T> values = Collections2.transform(actionTypes, transformFunction);
         Set<T> valueSet = new HashSet<>(values);
 
