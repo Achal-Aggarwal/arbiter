@@ -41,7 +41,7 @@ public class ArbiterTest {
         File tempFile = writeToTempFile("testconfig.yaml");
         String[] configFiles = {tempFile.getAbsolutePath()};
 
-        List<Config> result = Arbiter.readConfigFiles(configFiles, false);
+        List<Config> result = Arbiter.readConfigFiles(".", configFiles, false);
         assertEquals(1, result.size());
 
         Config expected = new Config();
@@ -70,7 +70,7 @@ public class ArbiterTest {
         File tempFile = writeToTempFile("testconfig.yaml");
         String[] configFiles = {tempFile.getAbsolutePath()};
 
-        List<Config> result = Arbiter.readConfigFiles(configFiles, true);
+        List<Config> result = Arbiter.readConfigFiles(".", configFiles, true);
         assertEquals(1, result.size());
 
         Config expected = new Config();

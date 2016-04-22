@@ -62,8 +62,8 @@ public class Arbiter {
         String[] inputFiles = parsed.getOptionValues("i");
         String outputDir = parsed.getOptionValue("o");
 
-        List<Config> parsedConfigFiles = readConfigFiles(configFiles, false);
-        parsedConfigFiles.addAll(readConfigFiles(lowPrecedenceConfigFiles, true));
+        List<Config> parsedConfigFiles = readConfigFiles(".", configFiles, false);
+        parsedConfigFiles.addAll(readConfigFiles(".", lowPrecedenceConfigFiles, true));
         Config merged = ConfigurationMerger.mergeConfiguration(parsedConfigFiles);
 
         List<Workflow> workflows = readWorkflowFiles(inputFiles);
@@ -105,7 +105,7 @@ public class Arbiter {
      * @param lowPrecedence Whether or not these configurations should be marked as low-priority
      * @return A List of Config objects corresponding to the given files
      */
-    public static List<Config> readConfigFiles(String[] files, boolean lowPrecedence) {
+    public static List<Config> readConfigFiles(String baseDir, String[] files, boolean lowPrecedence) {
         if (files == null) {
             return Lists.newArrayList();
         }
@@ -115,10 +115,14 @@ public class Arbiter {
         ArrayList<Config> result = Lists.newArrayList();
         
         for (String file : files) {
-            File f = new File(file);
-            Config c = reader.read(f);
-            c.setLowPrecedence(lowPrecedence);
-            result.add(c);
+            File f = new File(baseDir, file);
+            if(f.isDirectory()) {
+                result.addAll(readConfigFiles(f.getAbsolutePath(), f.list(), lowPrecedence));
+            } else {
+                Config c = reader.read(f);
+                c.setLowPrecedence(lowPrecedence);
+                result.add(c);
+            }
         }
         
         return result;

@@ -47,7 +47,7 @@ public class Config {
     }
 
     private Global global;
-    private List<ActionType> actionTypes;
+    private List<ActionType> actionTypes = new ArrayList<>();
     private String killName;
     private String killMessage;
     private List<Credential> credentials = new ArrayList<>();
