@@ -1,4 +1,4 @@
-package com.etsy.arbiter;
+package com.etsy.arbiter.config;
 
 import lombok.Data;
 

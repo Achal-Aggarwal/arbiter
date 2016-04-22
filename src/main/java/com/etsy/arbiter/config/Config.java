@@ -16,13 +16,9 @@
 
 package com.etsy.arbiter.config;
 
-import com.etsy.arbiter.Credential;
-import com.etsy.arbiter.Global;
 import lombok.Data;
-import lombok.Getter;
 import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.constructor.Constructor;
-import sun.org.mozilla.javascript.internal.annotations.JSGetter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +38,7 @@ public class Config {
     public static Constructor getYamlConstructor() {
         Constructor configConstructor = new Constructor(Config.class);
         TypeDescription configDescription = new TypeDescription(Config.class);
+        configDescription.putListPropertyType("global", Global.class);
         configDescription.putListPropertyType("credentials", Credential.class);
         configDescription.putListPropertyType("actionTypes", ActionType.class);
         configConstructor.addTypeDescription(configDescription);
@@ -49,6 +46,7 @@ public class Config {
         return configConstructor;
     }
 
+    private Global global;
     private List<ActionType> actionTypes;
     private String killName;
     private String killMessage;

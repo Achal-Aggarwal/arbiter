@@ -16,6 +16,8 @@
 
 package com.etsy.arbiter;
 
+import com.etsy.arbiter.config.Credential;
+import com.etsy.arbiter.config.Global;
 import lombok.Data;
 import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.constructor.Constructor;
@@ -38,6 +40,7 @@ public class Workflow {
     public static Constructor getYamlConstructor() {
         Constructor workflowConstructor = new Constructor(Workflow.class);
         TypeDescription workflowDescription = new TypeDescription(Workflow.class);
+        workflowDescription.putListPropertyType("global", Global.class);
         workflowDescription.putListPropertyType("actions", Action.class);
         workflowDescription.putListPropertyType("credentials", Credential.class);
         workflowConstructor.addTypeDescription(workflowDescription);
@@ -49,4 +52,5 @@ public class Workflow {
     private List<Action> actions;
     private List<Credential> credentials = new ArrayList<>();
     private Action errorHandler;
+    private Global global;
 }

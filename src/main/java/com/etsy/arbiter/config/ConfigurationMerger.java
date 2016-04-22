@@ -16,7 +16,6 @@
 
 package com.etsy.arbiter.config;
 
-import com.etsy.arbiter.Credential;
 import com.etsy.arbiter.exception.ConfigurationException;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
@@ -44,6 +43,7 @@ public class ConfigurationMerger {
 
         Config mergedConfig = new Config();
 
+        mergedConfig.setGlobal(mergeGlobal(configs));
         mergedConfig.setKillName(mergeKillName(configs));
         mergedConfig.setKillMessage(mergeKillMessage(configs));
         mergedConfig.setActionTypes(mergeActionTypes(configs));
@@ -98,6 +98,15 @@ public class ConfigurationMerger {
         }
 
         return credentials;
+    }
+
+    private static Global mergeGlobal(List<Config> configs) {
+        return getFirstNonNull(configs, new Function<Config, Global>() {
+            @Override
+            public Global apply(Config input) {
+                return input.getGlobal();
+            }
+        });
     }
 
     private static String mergeKillMessage(List<Config> configs) {

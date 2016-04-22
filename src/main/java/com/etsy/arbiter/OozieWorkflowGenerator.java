@@ -18,6 +18,8 @@ package com.etsy.arbiter;
 
 import com.etsy.arbiter.config.ActionType;
 import com.etsy.arbiter.config.Config;
+import com.etsy.arbiter.config.Credential;
+import com.etsy.arbiter.config.Global;
 import com.etsy.arbiter.exception.WorkflowGraphException;
 import com.etsy.arbiter.util.GraphvizGenerator;
 import com.etsy.arbiter.util.NamedArgumentInterpolator;
@@ -107,6 +109,7 @@ public class OozieWorkflowGenerator {
             Directives directives = new Directives();
             createRootElement(workflow.getName(), directives);
 
+            addGlobal(config, workflow, directives);
             addCredentials(config, workflow, directives);
 
             Action kill = getActionByType(workflowGraph, "kill");
@@ -180,6 +183,26 @@ public class OozieWorkflowGenerator {
             }
             writeDocument(outputDirFile, xmlDoc, transformer, workflow.getName(), currentDateString);
         }
+    }
+
+    private void addGlobal(Config config, Workflow workflow, Directives directives) {
+        Global global = workflow.getGlobal() != null ? workflow.getGlobal() : config.getGlobal();
+
+        if(global == null) {
+            return;
+        }
+
+        directives.add("global");
+
+        addInnerActionElements(
+          global.getProperties(),
+          global.getConfigurationPosition(),
+          directives,
+          new HashMap<String, List<String>>(),
+          global.getDefaultArgs()
+        );
+
+        directives.up();
     }
 
     private void addCredentials(Config config, Workflow workflow, Directives directives) {
