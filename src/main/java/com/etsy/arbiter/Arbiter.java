@@ -23,18 +23,18 @@ import com.etsy.arbiter.util.YamlReader;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.cli.*;
-import org.apache.commons.io.IOCase;
-import org.apache.commons.io.filefilter.SuffixFileFilter;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
+import static org.apache.commons.io.FileUtils.getFile;
+import static org.apache.commons.io.FileUtils.listFiles;
+import static org.apache.commons.io.filefilter.FileFilterUtils.suffixFileFilter;
 
 /**
  * Entry point for Arbiter
@@ -58,11 +58,11 @@ public class Arbiter {
             throw new ParseException("Missing required argument: i");
         }
 
-        String[] configFiles = parsed.getOptionValues("c");
-        String[] lowPrecedenceConfigFiles = parsed.getOptionValues("l");
+        String configFile = parsed.getOptionValue("c");
+        String lowPrecedenceConfigFile = parsed.getOptionValue("l");
 
-        List<Config> parsedConfigFiles = readConfigFiles(".", configFiles, false);
-        parsedConfigFiles.addAll(readConfigFiles(".", lowPrecedenceConfigFiles, true));
+        List<Config> parsedConfigFiles = readConfigFiles(configFile, false);
+        parsedConfigFiles.addAll(readConfigFiles(lowPrecedenceConfigFile, true));
         Config merged = ConfigurationMerger.mergeConfiguration(parsedConfigFiles);
 
         String inputFile = parsed.getOptionValue("i");
@@ -92,7 +92,7 @@ public class Arbiter {
 
         File f = new File(file);
         if (f.isDirectory()) {
-            for (File yamlFile : f.listFiles(getOnlyYamlFiles())) {
+            for (File yamlFile : getOnlyYamlFiles(f)) {
                 result.put(yamlFile, reader.read(yamlFile));
             }
         } else {
@@ -102,24 +102,19 @@ public class Arbiter {
         return result;
     }
 
-    private static FilenameFilter getOnlyYamlFiles() {
-        return new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return name.toLowerCase().endsWith(".yaml");
-            }
-        };
+    public static Collection<File> getOnlyYamlFiles(File file) {
+        return listFiles(file, suffixFileFilter(".yaml"), TrueFileFilter.INSTANCE);
     }
 
     /**
      * Reads in a list of configuration files
      *
-     * @param files The list of files to read
+     * @param file The file/dir to read
      * @param lowPrecedence Whether or not these configurations should be marked as low-priority
      * @return A List of Config objects corresponding to the given files
      */
-    public static List<Config> readConfigFiles(String baseDir, String[] files, boolean lowPrecedence) {
-        if (files == null) {
+    public static List<Config> readConfigFiles(String file, boolean lowPrecedence) {
+        if (file == null) {
             return Lists.newArrayList();
         }
 
@@ -127,17 +122,19 @@ public class Arbiter {
         
         ArrayList<Config> result = Lists.newArrayList();
         
-        for (String file : files) {
-            File f = new File(baseDir, file);
-            if (f.isDirectory()) {
-                result.addAll(readConfigFiles(f.getAbsolutePath(), f.list(), lowPrecedence));
-            } else {
-                Config c = reader.read(f);
+        File f = new File(file);
+        if (f.isDirectory()) {
+            for (File yamlFile : getOnlyYamlFiles(f)) {
+                Config c = reader.read(yamlFile);
                 c.setLowPrecedence(lowPrecedence);
                 result.add(c);
             }
+        } else {
+            Config c = reader.read(f);
+            c.setLowPrecedence(lowPrecedence);
+            result.add(c);
         }
-        
+
         return result;
     }
 

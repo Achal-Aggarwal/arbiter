@@ -34,9 +34,8 @@ public class ArbiterTest {
     @Test
     public void testReadConfigFiles() throws IOException {
         File tempFile = writeToTempFile("testconfig.yaml");
-        String[] configFiles = {tempFile.getName()};
 
-        List<Config> result = Arbiter.readConfigFiles(tempFile.getParent(), configFiles, false);
+        List<Config> result = Arbiter.readConfigFiles(tempFile.getAbsolutePath(), false);
         assertEquals(1, result.size());
 
         Config expected = new Config();
@@ -63,9 +62,8 @@ public class ArbiterTest {
     @Test
     public void testReadLowPrecedenceConfigFiles() throws IOException {
         File tempFile = writeToTempFile("testconfig.yaml");
-        String[] configFiles = {tempFile.getName()};
 
-        List<Config> result = Arbiter.readConfigFiles(tempFile.getParent(), configFiles, true);
+        List<Config> result = Arbiter.readConfigFiles(tempFile.getAbsolutePath(), true);
         assertEquals(1, result.size());
 
         Config expected = new Config();

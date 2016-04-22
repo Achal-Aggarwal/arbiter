@@ -22,7 +22,6 @@ import com.etsy.arbiter.config.Credential;
 import com.etsy.arbiter.config.Global;
 import com.etsy.arbiter.exception.WorkflowGraphException;
 import com.etsy.arbiter.util.GraphvizGenerator;
-import com.etsy.arbiter.util.NamedArgumentInterpolator;
 import com.etsy.arbiter.workflow.WorkflowGraphBuilder;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
@@ -299,7 +298,7 @@ public class OozieWorkflowGenerator {
 
     private void setAttIfNotNull(Directives directives, String attrName, Object... attrValues) {
         for (Object attrValue : attrValues) {
-            if(attrValue!=null){
+            if (attrValue != null) {
                 directives.attr(attrName, attrValue.toString());
                 return;
             }
