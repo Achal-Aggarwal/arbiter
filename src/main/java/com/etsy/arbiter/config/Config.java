@@ -17,8 +17,12 @@
 package com.etsy.arbiter.config;
 
 import com.etsy.arbiter.Credential;
+import com.etsy.arbiter.Global;
+import lombok.Data;
+import lombok.Getter;
 import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.constructor.Constructor;
+import sun.org.mozilla.javascript.internal.annotations.JSGetter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +32,7 @@ import java.util.List;
  *
  * @author Andrew Johnson
  */
+@Data
 public class Config {
     /**
      * Defines how to construct a Config objects when reading from YAML
@@ -48,38 +53,6 @@ public class Config {
     private String killName;
     private String killMessage;
     private List<Credential> credentials = new ArrayList<>();
-
-    public List<ActionType> getActionTypes() {
-        return actionTypes;
-    }
-
-    public void setActionTypes(List<ActionType> actionTypes) {
-        this.actionTypes = actionTypes;
-    }
-
-    public String getKillName() {
-        return killName;
-    }
-
-    public void setKillName(String killName) {
-        this.killName = killName;
-    }
-
-    public String getKillMessage() {
-        return killMessage;
-    }
-
-    public void setKillMessage(String killMessage) {
-        this.killMessage = killMessage;
-    }
-
-    public List<Credential> getCredentials() {
-        return credentials;
-    }
-
-    public void setCredentials(List<Credential> credentials) {
-        this.credentials = credentials;
-    }
 
     /**
      * Sets the precedence for this Config
@@ -106,52 +79,5 @@ public class Config {
         }
 
         return null;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        Config config = (Config) o;
-
-        if (actionTypes != null ? !actionTypes.equals(config.actionTypes) : config.actionTypes != null) {
-            return false;
-        }
-        if (credentials != null ? !credentials.equals(config.credentials) : config.credentials != null) {
-            return false;
-        }
-        if (killMessage != null ? !killMessage.equals(config.killMessage) : config.killMessage != null) {
-            return false;
-        }
-        if (killName != null ? !killName.equals(config.killName) : config.killName != null) {
-            return false;
-        }
-
-        return true;
-    }
-
-    @SuppressWarnings("Duplicates")
-    @Override
-    public int hashCode() {
-        int result = actionTypes != null ? actionTypes.hashCode() : 0;
-        result = 31 * result + (credentials != null ? credentials.hashCode() : 0);
-        result = 31 * result + (killName != null ? killName.hashCode() : 0);
-        result = 31 * result + (killMessage != null ? killMessage.hashCode() : 0);
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        return "Config{" +
-                "actionTypes=" + actionTypes +
-                ", credentials=" + credentials +
-                ", killName='" + killName + '\'' +
-                ", killMessage='" + killMessage + '\'' +
-                '}';
     }
 }

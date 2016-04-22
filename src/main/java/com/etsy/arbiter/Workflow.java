@@ -16,6 +16,7 @@
 
 package com.etsy.arbiter;
 
+import lombok.Data;
 import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.constructor.Constructor;
 
@@ -27,6 +28,7 @@ import java.util.List;
  *
  * @author Andrew Johnson
  */
+@Data
 public class Workflow {
     /**
      * Defines how to construct a Workflow objects when reading from YAML
@@ -44,89 +46,7 @@ public class Workflow {
     }
 
     private String name;
-
     private List<Action> actions;
-
     private List<Credential> credentials = new ArrayList<>();
-
     private Action errorHandler;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public List<Action> getActions() {
-        return actions;
-    }
-
-    public void setActions(List<Action> actions) {
-        this.actions = actions;
-    }
-
-    public List<Credential> getCredentials() {
-        return credentials;
-    }
-
-    public void setCredentials(List<Credential> credentials) {
-        this.credentials = credentials;
-    }
-
-    public Action getErrorHandler() {
-        return errorHandler;
-    }
-
-    public void setErrorHandler(Action errorHandler) {
-        this.errorHandler = errorHandler;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        Workflow workflow = (Workflow) o;
-
-        if (actions != null ? !actions.equals(workflow.actions) : workflow.actions != null) {
-            return false;
-        }
-        if (credentials != null ? !credentials.equals(workflow.credentials) : workflow.credentials != null) {
-            return false;
-        }
-        if (errorHandler != null ? !errorHandler.equals(workflow.errorHandler) : workflow.errorHandler != null) {
-            return false;
-        }
-        if (name != null ? !name.equals(workflow.name) : workflow.name != null) {
-            return false;
-        }
-
-        return true;
-    }
-
-    @SuppressWarnings("Duplicates")
-    @Override
-    public int hashCode() {
-        int result = name != null ? name.hashCode() : 0;
-        result = 31 * result + (actions != null ? actions.hashCode() : 0);
-        result = 31 * result + (credentials != null ? credentials.hashCode() : 0);
-        result = 31 * result + (errorHandler != null ? errorHandler.hashCode() : 0);
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        return "Workflow{" +
-                "name='" + name + '\'' +
-                ", credentials=" + credentials +
-                ", actions=" + actions +
-                ", errorHandler=" + errorHandler +
-                '}';
-    }
 }
