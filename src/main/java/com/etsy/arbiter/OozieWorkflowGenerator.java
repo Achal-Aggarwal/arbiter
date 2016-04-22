@@ -211,8 +211,10 @@ public class OozieWorkflowGenerator {
     private void createActionElement(Action action, DirectedAcyclicGraph<Action, DefaultEdge> workflowGraph, Action transition, Action errorTransition, Directives directives) {
         ActionType type = getActionType(action.getType());
 
+        addSwitchIfRequired(action, directives, transition);
+
         directives.add("action")
-                .attr("name", action.getName())
+                .attr("name", action.getActualName())
                 .attr("cred", action.getCred())
                 .add(type.getTag());
 
@@ -246,6 +248,29 @@ public class OozieWorkflowGenerator {
         directives.add("error")
                 .attr("to", errorTransitionName)
                 .up();
+    }
+
+    private void addSwitchIfRequired(Action action, Directives directives, Action transition) {
+        if(action.getOnlyIf() == null) {
+            return;
+        }
+
+        String defaultTransitionName = action.getForceOk() != null ? action.getForceOk() : transition.getName();
+
+        directives
+          .add("decision")
+          .attr("name", action.getName())
+          .add("switch")
+          .add("case")
+          .attr("to", action.getActualName())
+          .set(action.getOnlyIf())
+          .up()
+          .add("default")
+          .attr("to", defaultTransitionName)
+          .up()
+          .up()
+          .up();
+
     }
 
     /**

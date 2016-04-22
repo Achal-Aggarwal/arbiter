@@ -33,6 +33,11 @@ public class Action {
     private Map<String, List<String>> positionalArgs;
     private Map<String, String> namedArgs;
     private Map<String, String> configurationProperties;
+    private String onlyIf;
+
+    public String getActualName() {
+        return onlyIf == null ? getName() : "?-" + getName();
+    }
 
     public String getName() {
         return name;
@@ -121,6 +126,14 @@ public class Action {
         this.cred = cred;
     }
 
+    public String getOnlyIf() {
+        return onlyIf;
+    }
+
+    public void setOnlyIf(String onlyIf) {
+        this.onlyIf = onlyIf;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -139,6 +152,9 @@ public class Action {
             return false;
         }
         if (cred != null ? !cred.equals(action.cred) : action.cred != null) {
+            return false;
+        }
+        if (onlyIf != null ? !onlyIf.equals(action.onlyIf) : action.onlyIf != null) {
             return false;
         }
         if (forceOk != null ? !forceOk.equals(action.forceOk) : action.forceOk != null) {
@@ -165,6 +181,7 @@ public class Action {
         int result = name != null ? name.hashCode() : 0;
         result = 31 * result + (type != null ? type.hashCode() : 0);
         result = 31 * result + (cred != null ? cred.hashCode() : 0);
+        result = 31 * result + (onlyIf != null ? onlyIf.hashCode() : 0);
         result = 31 * result + (forceOk != null ? forceOk.hashCode() : 0);
         result = 31 * result + (forceError != null ? forceError.hashCode() : 0);
         result = 31 * result + (dependencies != null ? dependencies.hashCode() : 0);
@@ -179,6 +196,7 @@ public class Action {
         return "Action{" +
                 "name='" + name + '\'' +
                 ", type='" + type + '\'' +
+                ", onlyIf='" + onlyIf + '\'' +
                 ", forceOk='" + forceOk + '\'' +
                 ", forceError='" + forceError + '\'' +
                 ", dependencies=" + dependencies +
