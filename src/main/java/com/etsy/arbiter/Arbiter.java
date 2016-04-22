@@ -28,11 +28,9 @@ import org.apache.commons.io.filefilter.TrueFileFilter;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.*;
 
-import static org.apache.commons.io.FileUtils.getFile;
 import static org.apache.commons.io.FileUtils.listFiles;
 import static org.apache.commons.io.filefilter.FileFilterUtils.suffixFileFilter;
 

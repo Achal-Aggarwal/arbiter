@@ -39,7 +39,7 @@ public class Action {
     private String onlyIf;
     private Map<String, String> prepare;
     private String retryMax;
-    private String retryMin;
+    private String retryInterval;
 
     public String getActualName() {
         return onlyIf == null ? getName() : "?-" + getName();

@@ -115,7 +115,7 @@ public class OozieWorkflowGenerator {
             Document xmlDoc = builder.newDocument();
 
             Directives directives = new Directives();
-            createRootElement(workflow.getName(), directives);
+            createRootElement(workflow, directives);
 
             addGlobal(config, workflow, directives);
             addCredentials(config, workflow, directives);
@@ -225,15 +225,13 @@ public class OozieWorkflowGenerator {
     private void addCredentials(List<Credential> credentials, Directives directives) {
         directives.add("credentials");
 
-        for (Credential credential : credentials) {
-            directives
-              .add("credential")
-              .attr("name", credential.getName())
-              .attr("type", credential.getType());
+        for (final Credential credential : credentials) {
+            HashMap<String, String> attributes = new HashMap<String, String>() { {
+                put("name", credential.getName());
+                put("type", credential.getType());
+            } };
 
-            createConfigurationElement(credential.getProperties(), directives);
-
-            directives.up();
+            createConfigurationElement("credential", attributes, credential.getProperties(), directives);
         }
 
         directives.up();
@@ -258,7 +256,7 @@ public class OozieWorkflowGenerator {
 
         setAttIfNotNull(directives, "cred", action.getCred(), type.getCred());
         setAttIfNotNull(directives, "retry-max", action.getRetryMax(), type.getRetryMax());
-        setAttIfNotNull(directives, "retry-min", action.getRetryMin(), type.getRetryMin());
+        setAttIfNotNull(directives, "retry-interval", action.getRetryInterval(), type.getRetryInterval());
 
         directives.add(type.getTag());
 
@@ -423,13 +421,13 @@ public class OozieWorkflowGenerator {
 
         for (int i = 0; i < entries.size(); i++) {
             if (configurationPosition == i) {
-                createConfigurationElement(properties, directives);
+                createConfigurationElement("configuration", new HashMap<String, String>(), properties, directives);
             }
             addKeyMultiValueElements(entries.get(i), directives);
         }
 
         if (entries.size() < configurationPosition) {
-            createConfigurationElement(properties, directives);
+            createConfigurationElement("configuration", new HashMap<String, String>(), properties, directives);
         }
     }
 
@@ -439,12 +437,15 @@ public class OozieWorkflowGenerator {
      * @param properties The configuration properties
      * @param directives The Xembly Directives object to which to add the new XML elements
      */
-    private void createConfigurationElement(Map<String, String> properties, Directives directives) {
-        if (properties == null) {
+    private void createConfigurationElement(String enclosingTag, Map<String, String> enclosingTagAttr, Map<String, String> properties, Directives directives) {
+        if (properties == null || properties.isEmpty()) {
             return;
         }
 
-        directives.add("configuration");
+        directives.add(enclosingTag);
+        for (String attrName : enclosingTagAttr.keySet()) {
+            directives.attr(attrName, enclosingTagAttr.get(attrName));
+        }
 
         for (Map.Entry<String, String> entry : properties.entrySet()) {
             directives.add("property")
@@ -534,13 +535,13 @@ public class OozieWorkflowGenerator {
     /**
      * Create the root XML element
      *
-     * @param name The name of the root element
+     * @param workflow The workflow
      * @param directives The Xembly Directives object to which to add the root element
      */
-    private void createRootElement(String name, Directives directives) {
+    private void createRootElement(Workflow workflow, Directives directives) {
         directives.add("workflow-app")
-                .attr("xmlns", "uri:oozie:workflow:0.2")
-                .attr("name", name);
+                .attr("xmlns", workflow.getXmlns())
+                .attr("name", workflow.getName());
     }
 
     /**
