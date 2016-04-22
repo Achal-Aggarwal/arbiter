@@ -51,6 +51,8 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static com.etsy.arbiter.util.NamedArgumentInterpolator.interpolate;
+
 /**
  * Generates Oozie workflows from Arbiter workflows
  *
@@ -266,10 +268,10 @@ public class OozieWorkflowGenerator {
             directives.attr("xmlns", type.getXmlns());
         }
 
-        addPrepareIfPresent(action, directives);
+        addPrepareIfPresent(type, action, directives);
 
         // There is an outer action tag and an inner tag corresponding to the action type
-        Map<String, List<String>> interpolated = NamedArgumentInterpolator.interpolate(type.getDefaultArgs(), action.getNamedArgs(), type.getDefaultInterpolations(), action.getPositionalArgs());
+        Map<String, List<String>> interpolated = interpolate(type.getDefaultArgs(), action.getNamedArgs(), type.getDefaultInterpolations(), action.getPositionalArgs());
         Map<String, String> mergedConfigurationProperties = new HashMap<>(type.getProperties());
         if (action.getConfigurationProperties() != null) {
             mergedConfigurationProperties.putAll(action.getConfigurationProperties());
@@ -283,7 +285,7 @@ public class OozieWorkflowGenerator {
                 .up();
 
         // We allow forcing a particular error transition regardless of other considerations
-        String interpolatedForceError = NamedArgumentInterpolator.interpolate(action.getForceError(), ImmutableMap.of("okTransition", okTransitionName), type.getDefaultInterpolations());
+        String interpolatedForceError = interpolate(action.getForceError(), ImmutableMap.of("okTransition", okTransitionName), type.getDefaultInterpolations());
         String errorTransitionName = interpolatedForceError != null ? interpolatedForceError : errorTransition.getName();
         // Find the enclosing fork/join pair
         // If an action is inside a fork/join, it should transition to the join on error
@@ -296,17 +298,21 @@ public class OozieWorkflowGenerator {
                 .up();
     }
 
-    private void addPrepareIfPresent(Action action, Directives directives) {
-        if (action.getPrepare() == null) {
+    private void addPrepareIfPresent(ActionType type, Action action, Directives directives) {
+        Map<String, String> prepare = type.getPrepare() == null ? action.getPrepare() : type.getPrepare();
+
+        if (prepare == null) {
             return;
         }
 
+        prepare = interpolate(prepare, action.getNamedArgs(), type.getDefaultInterpolations());
+
         directives.add("prepare");
 
-        for (String preapreStep : action.getPrepare().keySet()) {
+        for (String preapreStep : prepare.keySet()) {
             directives
               .add(preapreStep)
-              .attr("path", action.getPrepare().get(preapreStep))
+              .attr("path", prepare.get(preapreStep))
               .up();
         }
 

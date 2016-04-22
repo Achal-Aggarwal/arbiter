@@ -80,6 +80,31 @@ public class NamedArgumentInterpolator {
     }
 
     /**
+     * Performs variable interpolation using the named arguments from an Action
+     * This will create a new map if any interpolation is performed
+     *
+     * @param input The positional arguments possibly containing keys to be interpolated
+     * @param namedArgs The key/value pairs used for interpolation
+     * @param defaultArgs Default values for the named args, used if an interpolation key has no value given
+     *
+     * @return A copy of input with variable interpolation performed
+     */
+    public static Map<String, String> interpolate(Map<String, String> input, final Map<String, String> namedArgs, final Map<String, String> defaultArgs) {
+        if (namedArgs == null || input == null) {
+            return input;
+        }
+
+        final Map<String, String> interpolationArgs = createFinalInterpolationMap(namedArgs, defaultArgs);
+
+        return Maps.transformValues(input, new Function<String, String>() {
+            @Override
+            public String apply(String s) {
+                return StrSubstitutor.replace(s, interpolationArgs, PREFIX, SUFFIX);
+            }
+        });
+    }
+
+    /**
      * Performs variable interpolation using the named arguments from an Action on a single String
      *
      * @param input The string possibly containing keys to be interpolated
