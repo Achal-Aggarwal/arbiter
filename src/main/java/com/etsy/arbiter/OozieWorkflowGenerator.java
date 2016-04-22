@@ -223,9 +223,14 @@ public class OozieWorkflowGenerator {
         addSwitchIfRequired(action, directives, transition);
 
         directives.add("action")
-                .attr("name", action.getActualName())
-                .attr("cred", action.getCred())
-                .add(type.getTag());
+                .attr("name", action.getActualName());
+
+        String credName = action.getCred() != null ? action.getCred() : type.getCred();
+        if (credName != null){
+            directives.attr("cred", credName);
+        }
+
+        directives.add(type.getTag());
 
         if (type.getXmlns() != null) {
             directives.attr("xmlns", type.getXmlns());
