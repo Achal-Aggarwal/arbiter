@@ -33,6 +33,8 @@ public class ActionType {
     private String name;
     private String xmlns;
     private String cred;
+    private Integer retryMax;
+    private Integer retryMin;
     private Map<String, List<String>> defaultArgs;
     private Map<String, String> properties = new HashMap<>();
     private Map<String, String> defaultInterpolations;

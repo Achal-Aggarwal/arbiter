@@ -257,10 +257,9 @@ public class OozieWorkflowGenerator {
         directives.add("action")
                 .attr("name", action.getActualName());
 
-        String credName = action.getCred() != null ? action.getCred() : type.getCred();
-        if (credName != null) {
-            directives.attr("cred", credName);
-        }
+        setAttIfNotNull(directives, "cred", action.getCred(), type.getCred());
+        setAttIfNotNull(directives, "retry-max", action.getRetryMax(), type.getRetryMax());
+        setAttIfNotNull(directives, "retry-min", action.getRetryMin(), type.getRetryMin());
 
         directives.add(type.getTag());
 
@@ -296,6 +295,15 @@ public class OozieWorkflowGenerator {
         directives.add("error")
                 .attr("to", errorTransitionName)
                 .up();
+    }
+
+    private void setAttIfNotNull(Directives directives, String attrName, Object... attrValues) {
+        for (Object attrValue : attrValues) {
+            if(attrValue!=null){
+                directives.attr(attrName, attrValue.toString());
+                return;
+            }
+        }
     }
 
     private void addPrepareIfPresent(ActionType type, Action action, Directives directives) {
