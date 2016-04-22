@@ -107,7 +107,7 @@ public class OozieWorkflowGenerator {
             Directives directives = new Directives();
             createRootElement(workflow.getName(), directives);
 
-            addCredentials(workflow.getCredentials(), directives);
+            addCredentials(config, workflow, directives);
 
             Action kill = getActionByType(workflowGraph, "kill");
             Action end = getActionByType(workflowGraph, "end");
@@ -180,6 +180,15 @@ public class OozieWorkflowGenerator {
             }
             writeDocument(outputDirFile, xmlDoc, transformer, workflow.getName(), currentDateString);
         }
+    }
+
+    private void addCredentials(Config config, Workflow workflow, Directives directives) {
+        ArrayList<Credential> credentials = new ArrayList<>();
+
+        credentials.addAll(config.getCredentials());
+        credentials.addAll(workflow.getCredentials());
+
+        addCredentials(credentials, directives);
     }
 
     private void addCredentials(List<Credential> credentials, Directives directives) {

@@ -16,6 +16,7 @@
 
 package com.etsy.arbiter.config;
 
+import com.etsy.arbiter.Credential;
 import com.etsy.arbiter.exception.ConfigurationException;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
@@ -40,6 +41,86 @@ public class ConfigurationMerger {
      * @return A Config object representing the merger of all given Configs
      */
     public static Config mergeConfiguration(List<Config> configs) throws ConfigurationException {
+
+        Config mergedConfig = new Config();
+
+        mergedConfig.setKillName(mergeKillName(configs));
+        mergedConfig.setKillMessage(mergeKillMessage(configs));
+        mergedConfig.setActionTypes(mergeActionTypes(configs));
+        mergedConfig.setCredentials(mergeCredentials(configs));
+
+        return mergedConfig;
+    }
+
+    private static List<Credential> mergeCredentials(List<Config> configs) throws ConfigurationException {
+        List<Credential> credentials = new ArrayList<>();
+
+        Map<String, List<Credential>> creds = new HashMap<>();
+
+        for (Config c : configs) {
+            for (Credential a : c.getCredentials()) {
+                String name = a.getName();
+                if (!creds.containsKey(name)) {
+                    creds.put(name, Lists.newArrayList(a));
+                } else {
+                    creds.get(name).add(a);
+                }
+            }
+        }
+
+        for (Map.Entry<String, List<Credential>> entry : creds.entrySet()) {
+            if (entry.getValue().size() == 1) {
+                credentials.addAll(entry.getValue());
+            } else {
+                List<Credential> value = entry.getValue();
+                Credential merged = new Credential();
+                merged.setName(entry.getKey());
+
+                // If the tag or xmlns differs, the configuration is invalid
+                if (!areAllValuesEqual(value, new Function<Credential, String>() {
+                    @Override
+                    public String apply(Credential input) {
+                        return input.getType();
+                    }
+                })) {
+                    throw new ConfigurationException("Type do not match for Credential " + entry.getKey());
+                }
+
+                merged.setProperties(mergeMaps(value, new Function<Credential, Map<String, String>>() {
+                    @Override
+                    public Map<String, String> apply(Credential input) {
+                        return input.getProperties();
+                    }
+                }));
+
+                credentials.add(merged);
+            }
+        }
+
+        return credentials;
+    }
+
+    private static String mergeKillMessage(List<Config> configs) {
+        return getFirstNonNull(configs, new Function<Config, String>() {
+            @Override
+            public String apply(Config input) {
+                return input.getKillMessage();
+            }
+        });
+    }
+
+    private static String mergeKillName(List<Config> configs) {
+        return getFirstNonNull(configs, new Function<Config, String>() {
+            @Override
+            public String apply(Config input) {
+                return input.getKillName();
+            }
+        });
+    }
+
+    private static List<ActionType> mergeActionTypes(List<Config> configs) throws ConfigurationException {
+        List<ActionType> actionTypes = new ArrayList<>();
+
         Map<String, List<ActionType>> actions = new HashMap<>();
 
         for (Config c : configs) {
@@ -52,8 +133,6 @@ public class ConfigurationMerger {
                 }
             }
         }
-
-        List<ActionType> actionTypes = new ArrayList<>();
 
         for (Map.Entry<String, List<ActionType>> entry : actions.entrySet()) {
             if (entry.getValue().size() == 1) {
@@ -102,22 +181,7 @@ public class ConfigurationMerger {
             }
         }
 
-        Config mergedConfig = new Config();
-        mergedConfig.setKillName(getFirstNonNull(configs, new Function<Config, String>() {
-            @Override
-            public String apply(Config input) {
-                return input.getKillName();
-            }
-        }));
-        mergedConfig.setKillMessage(getFirstNonNull(configs, new Function<Config, String>() {
-            @Override
-            public String apply(Config input) {
-                return input.getKillMessage();
-            }
-        }));
-        mergedConfig.setActionTypes(actionTypes);
-
-        return mergedConfig;
+        return actionTypes;
     }
 
     /**
@@ -165,7 +229,7 @@ public class ConfigurationMerger {
      * @param <T> The type of values in the map
      * @return A Map representing the merger of all input maps
      */
-    public static <T> Map<String, T> mergeMaps(Collection<ActionType> actionTypes, Function<ActionType, Map<String, T>> transformFunction) {
+    public static <M,T> Map<String, T> mergeMaps(Collection<M> actionTypes, Function<M, Map<String, T>> transformFunction) {
         Collection<Map<String, T>> values = Collections2.transform(actionTypes, transformFunction);
         Map<String, T> result = new HashMap<>();
         for (Map<String, T> map : values) {
@@ -183,7 +247,7 @@ public class ConfigurationMerger {
      * @param <T> The type of value being checked
      * @return true if all given ActionTypes have the same value, false otherwise
      */
-    public static <T> boolean areAllValuesEqual(Collection<ActionType> actionTypes, Function<ActionType, T> transformFunction) {
+    public static <M,T> boolean areAllValuesEqual(Collection<M> actionTypes, Function<M, T> transformFunction) {
         Collection<T> values = Collections2.transform(actionTypes, transformFunction);
         Set<T> valueSet = new HashSet<>(values);
 

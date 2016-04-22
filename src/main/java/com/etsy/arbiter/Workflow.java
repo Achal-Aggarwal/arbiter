@@ -19,6 +19,7 @@ package com.etsy.arbiter;
 import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.constructor.Constructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -46,7 +47,7 @@ public class Workflow {
 
     private List<Action> actions;
 
-    private List<Credential> credentials;
+    private List<Credential> credentials = new ArrayList<>();
 
     private Action errorHandler;
 
@@ -109,6 +110,7 @@ public class Workflow {
         return true;
     }
 
+    @SuppressWarnings("Duplicates")
     @Override
     public int hashCode() {
         int result = name != null ? name.hashCode() : 0;

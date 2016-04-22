@@ -16,9 +16,11 @@
 
 package com.etsy.arbiter.config;
 
+import com.etsy.arbiter.Credential;
 import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.constructor.Constructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -35,6 +37,7 @@ public class Config {
     public static Constructor getYamlConstructor() {
         Constructor configConstructor = new Constructor(Config.class);
         TypeDescription configDescription = new TypeDescription(Config.class);
+        configDescription.putListPropertyType("credentials", Credential.class);
         configDescription.putListPropertyType("actionTypes", ActionType.class);
         configConstructor.addTypeDescription(configDescription);
 
@@ -44,6 +47,7 @@ public class Config {
     private List<ActionType> actionTypes;
     private String killName;
     private String killMessage;
+    private List<Credential> credentials = new ArrayList<>();
 
     public List<ActionType> getActionTypes() {
         return actionTypes;
@@ -67,6 +71,14 @@ public class Config {
 
     public void setKillMessage(String killMessage) {
         this.killMessage = killMessage;
+    }
+
+    public List<Credential> getCredentials() {
+        return credentials;
+    }
+
+    public void setCredentials(List<Credential> credentials) {
+        this.credentials = credentials;
     }
 
     /**
@@ -110,6 +122,9 @@ public class Config {
         if (actionTypes != null ? !actionTypes.equals(config.actionTypes) : config.actionTypes != null) {
             return false;
         }
+        if (credentials != null ? !credentials.equals(config.credentials) : config.credentials != null) {
+            return false;
+        }
         if (killMessage != null ? !killMessage.equals(config.killMessage) : config.killMessage != null) {
             return false;
         }
@@ -120,9 +135,11 @@ public class Config {
         return true;
     }
 
+    @SuppressWarnings("Duplicates")
     @Override
     public int hashCode() {
         int result = actionTypes != null ? actionTypes.hashCode() : 0;
+        result = 31 * result + (credentials != null ? credentials.hashCode() : 0);
         result = 31 * result + (killName != null ? killName.hashCode() : 0);
         result = 31 * result + (killMessage != null ? killMessage.hashCode() : 0);
         return result;
@@ -132,6 +149,7 @@ public class Config {
     public String toString() {
         return "Config{" +
                 "actionTypes=" + actionTypes +
+                ", credentials=" + credentials +
                 ", killName='" + killName + '\'' +
                 ", killMessage='" + killMessage + '\'' +
                 '}';
