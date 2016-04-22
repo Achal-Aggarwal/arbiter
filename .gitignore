@@ -6,3 +6,5 @@ dependency-reduced-pom.xml
 *.cfg
 *.dot
 *.png
+configs/
+workflows/

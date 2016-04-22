@@ -18,6 +18,7 @@ package com.etsy.arbiter.config;
 
 import lombok.Data;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -33,7 +34,7 @@ public class ActionType {
     private String xmlns;
     private String cred;
     private Map<String, List<String>> defaultArgs;
-    private Map<String, String> properties;
+    private Map<String, String> properties = new HashMap<>();
     private Map<String, String> defaultInterpolations;
     private boolean lowPrecedence;
     private int configurationPosition;

@@ -266,6 +266,8 @@ public class OozieWorkflowGenerator {
             directives.attr("xmlns", type.getXmlns());
         }
 
+        addPrepareIfPresent(action, directives);
+
         // There is an outer action tag and an inner tag corresponding to the action type
         Map<String, List<String>> interpolated = NamedArgumentInterpolator.interpolate(type.getDefaultArgs(), action.getNamedArgs(), type.getDefaultInterpolations(), action.getPositionalArgs());
         Map<String, String> mergedConfigurationProperties = new HashMap<>(type.getProperties());
@@ -292,6 +294,23 @@ public class OozieWorkflowGenerator {
         directives.add("error")
                 .attr("to", errorTransitionName)
                 .up();
+    }
+
+    private void addPrepareIfPresent(Action action, Directives directives) {
+        if (action.getPrepare() == null) {
+            return;
+        }
+
+        directives.add("prepare");
+
+        for (String preapreStep : action.getPrepare().keySet()) {
+            directives
+              .add(preapreStep)
+              .attr("path", action.getPrepare().get(preapreStep))
+              .up();
+        }
+
+        directives.up();
     }
 
     private void addSwitchIfRequired(Action action, Directives directives, Action transition) {

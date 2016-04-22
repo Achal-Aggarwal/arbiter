@@ -93,9 +93,8 @@ public class ArbiterTest {
     @Test
     public void testReadWorkflowFiles() throws IOException {
         File tempFile = writeToTempFile("testworkflow.yaml");
-        String[] workflowFiles = {tempFile.getName()};
 
-        Map<File, Workflow> result = Arbiter.readWorkflowFiles(tempFile.getParent(), workflowFiles);
+        Map<File, Workflow> result = Arbiter.readWorkflowFiles(tempFile.getAbsolutePath());
         assertEquals(1, result.size());
 
         Workflow expected = new Workflow();

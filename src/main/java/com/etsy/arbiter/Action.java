@@ -37,6 +37,7 @@ public class Action {
     private Map<String, String> namedArgs;
     private Map<String, String> configurationProperties;
     private String onlyIf;
+    private Map<String, String> prepare;
 
     public String getActualName() {
         return onlyIf == null ? getName() : "?-" + getName();
