@@ -266,11 +266,13 @@ public class OozieWorkflowGenerator {
 
         addPrepareIfPresent(type, action, directives);
 
+        addElemsIfPresent(action, directives);
+
         // There is an outer action tag and an inner tag corresponding to the action type
         Map<String, List<String>> interpolated = interpolate(type.getDefaultArgs(), action.getNamedArgs(), type.getDefaultInterpolations(), action.getPositionalArgs());
         Map<String, String> mergedConfigurationProperties = new HashMap<>(type.getProperties());
-        if (action.getConfigurationProperties() != null) {
-            mergedConfigurationProperties.putAll(action.getConfigurationProperties());
+        if (action.getProperties() != null) {
+            mergedConfigurationProperties.putAll(action.getProperties());
         }
         addInnerActionElements(mergedConfigurationProperties, type.getConfigurationPosition(), directives, interpolated, action.getPositionalArgs());
         directives.up();
@@ -292,6 +294,25 @@ public class OozieWorkflowGenerator {
         directives.add("error")
                 .attr("to", errorTransitionName)
                 .up();
+    }
+
+    private void addElemsIfPresent(Action action, Directives directives) {
+        LinkedHashMap<String, LinkedHashMap<String, String>> actionElem = action.getElem();
+
+        if (actionElem == null) {
+            return;
+        }
+
+        for (String elem : actionElem.keySet()) {
+            directives
+              .add(elem);
+
+            for (String attr : actionElem.get(elem).keySet()) {
+                directives.attr(attr, actionElem.get(elem).get(attr));
+            }
+
+            directives.up();
+        }
     }
 
     private void setAttIfNotNull(Directives directives, String attrName, Object... attrValues) {

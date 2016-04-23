@@ -35,11 +35,13 @@ public class Action {
     private Set<String> dependencies;
     private Map<String, List<String>> positionalArgs;
     private Map<String, String> namedArgs;
-    private Map<String, String> configurationProperties;
+    private Map<String, String> properties;
     private String onlyIf;
     private Map<String, String> prepare;
     private String retryMax;
     private String retryInterval;
+
+    private LinkedHashMap<String, LinkedHashMap<String, String>> elem;
 
     public String getActualName() {
         return onlyIf == null ? getName() : "?-" + getName();
