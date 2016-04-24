@@ -9,7 +9,7 @@
 
     <name>Arbiter</name>
     <description>Utility for generating Oozie workflows</description>
-    <url>https://github.com/etsy/arbiter</url>
+    <url>https://github.com/Achal-Aggarwal/arbiter</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -24,11 +24,16 @@
     </licenses>
 
     <scm>
-        <url>git@github.com:etsy/arbiter.git</url>
-        <connection>scm:git:git@github.com:etsy/arbiter.git</connection>
+        <url>git@github.com:Achal-Aggarwal/arbiter.git</url>
+        <connection>scm:git:git@github.com:Achal-Aggarwal/arbiter.git</connection>
     </scm>
 
     <developers>
+        <developer>
+            <id>Achal-Aggarwal</id>
+            <name>Achal Aggarwal</name>
+            <url>github.com/Achal-Aggarwal</url>
+        </developer>
         <developer>
             <id>ajsquared</id>
             <name>Andrew Johnson</name>
