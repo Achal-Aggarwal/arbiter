@@ -10,7 +10,14 @@ Arbiter requires at least Java 7.
 
 Arbiter is built with Maven.  Run `mvn clean package` to build an uber-JAR suitable for use in running Arbiter.
 
-Pre-built Arbiter JAR files are also available in Maven Central:
+I. Add sonatype repository
+```xml
+<repository>
+  <id>sonatype</id>
+  <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+</repository>
+```
+II. Add dependency
 ```xml
 <dependency>
   <groupId>net.achalaggarwal.arbiter</groupId>
