@@ -1,10 +1,5 @@
-# Arbiter [![Build Status](https://travis-ci.org/etsy/arbiter.svg)](https://travis-ci.org/etsy/arbiter)
+# Arbiter [![Build Status](https://travis-ci.org/Achal-Aggarwal/arbiter.svg)](https://travis-ci.org/Achal-Aggarwal/arbiter)
 Arbiter is a utility for generating XML Oozie workflows from a YAML specification.
-
-Read [the blog post](https://codeascraft.com/2015/12/16/introducing-arbiter-a-utility-for-generating-oozie-workflows/) that introduced Arbiter on [Code as Craft](https://codeascraft.com/), Etsy's engineering blog.
-
-## Mailing List
-There is a mailing list for this project at https://groups.google.com/forum/#!forum/arbiter-oozie.  If you have questions or suggestions for the project send them here!
 
 ## Features
 1. Configuration driven: The mapping of the YAML workflow definition to the generated XML is highly configurable.
@@ -18,16 +13,16 @@ Arbiter is built with Maven.  Run `mvn clean package` to build an uber-JAR suita
 Pre-built Arbiter JAR files are also available in Maven Central:
 ```xml
 <dependency>
-  <groupId>com.etsy</groupId>
+  <groupId>net.achalaggarwal.arbiter</groupId>
   <artifactId>arbiter</artifactId>
-  <version>0.5.0</version>
+  <version>0.1-SNAPSHOT</version>
 </dependency>
 ```
 
 ## Usage
-Before writing workflows with Arbiter, you must define at least one configuration file.  See [Configuration](https://github.com/etsy/arbiter/wiki/Configuration) for details on writing a configuration file.
+Before writing workflows with Arbiter, you must define at least one configuration file.  See [Configuration](https://github.com/Achal-Aggarwal/arbiter/wiki/Configuration) for details on writing a configuration file.
 
-See [Workflow Definition](https://github.com/etsy/arbiter/wiki/Workflow-Definition) for details on writing workflows with Arbiter.
+See [Workflow Definition](https://github.com/Achal-Aggarwal/arbiter/wiki/Workflow-Definition) for details on writing workflows with Arbiter.
 
 ### Command Line Options
 

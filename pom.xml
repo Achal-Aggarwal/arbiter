@@ -2,9 +2,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.etsy</groupId>
+    <groupId>net.achalaggarwal.arbiter</groupId>
     <artifactId>arbiter</artifactId>
-    <version>0.6.1-SNAPSHOT</version>
+    <version>0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>Arbiter</name>
@@ -140,9 +140,6 @@
                                 </goals>
                             </execution>
                         </executions>
-                        <configuration>
-                            <useAgent>true</useAgent>
-                        </configuration>
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
@@ -213,7 +210,7 @@
                     <transformers>
                         <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                             <manifestEntries>
-                                <Main-Class>com.etsy.arbiter.Arbiter</Main-Class>
+                                <Main-Class>net.achalaggarwal.arbiter.Arbiter</Main-Class>
                             </manifestEntries>
                         </transformer>
                     </transformers>
