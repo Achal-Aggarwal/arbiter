@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-dark.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+
+    <title>Arbiter by Achal-Aggarwal</title>
+  </head>
+
+  <body>
+
+    <header>
+      <div class="container">
+        <h1>Arbiter</h1>
+        <h2>A utility for generating Oozie workflows from a YAML definition</h2>
+
+        <section id="downloads">
+          <a href="https://github.com/Achal-Aggarwal/arbiter/zipball/master" class="btn">Download as .zip</a>
+          <a href="https://github.com/Achal-Aggarwal/arbiter/tarball/master" class="btn">Download as .tar.gz</a>
+          <a href="https://github.com/Achal-Aggarwal/arbiter" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
+        </section>
+      </div>
+    </header>
+
+    <div class="container">
+      <section id="main_content">
+        <h1>
+<a id="arbiter-" class="anchor" href="#arbiter-" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Arbiter <a href="https://travis-ci.org/Achal-Aggarwal/arbiter"><img src="https://travis-ci.org/Achal-Aggarwal/arbiter.svg" alt="Build Status"></a>
+</h1>
+
+<p>Arbiter is a utility for generating XML Oozie workflows from a YAML specification.</p>
+
+<h2>
+<a id="features" class="anchor" href="#features" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Features</h2>
+
+<ol>
+<li>Configuration driven: The mapping of the YAML workflow definition to the generated XML is highly configurable.</li>
+<li>Automatic dependency resolution and parallelism: Arbiter workflows are specified in terms of the dependencies between actions, rather than requiring the author to manually specify the flow.  Arbiter will order the workflow actions to satisfy the dependencies as well as insert fork/join pairs to run actions in parallel when possible.</li>
+<li>Conditional execution of an action: An action can have condition which when evaluated false will skip the execution of that particular action.</li>
+<li>Global configurations and credentials block: Configuration YAML and workflow YAML can specify global configuration section and credentials block for the oozie workflow </li>
+<li>Tags with attributes: Now actions like FS are possible.</li>
+<li>Prepare block config for actions</li>
+<li>Recursively traverse and compile YAML files for config as well as workflow files</li>
+<li>Support for retry-max and retry-interval attributes.</li>
+</ol>
+
+<h2>
+<a id="building" class="anchor" href="#building" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Building</h2>
+
+<p>Arbiter requires at least Java 7.</p>
+
+<p>Arbiter is built with Maven. Run <code>mvn clean package</code> to build an uber-JAR suitable for use in running Arbiter.</p>
+
+<p>Add dependency</p>
+
+<div class="highlight highlight-text-xml"><pre>&lt;<span class="pl-ent">dependency</span>&gt;
+  &lt;<span class="pl-ent">groupId</span>&gt;net.achalaggarwal.arbiter&lt;/<span class="pl-ent">groupId</span>&gt;
+  &lt;<span class="pl-ent">artifactId</span>&gt;arbiter&lt;/<span class="pl-ent">artifactId</span>&gt;
+  &lt;<span class="pl-ent">version</span>&gt;0.1&lt;/<span class="pl-ent">version</span>&gt;
+&lt;/<span class="pl-ent">dependency</span>&gt;</pre></div>
+
+<h2>
+<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Usage</h2>
+
+<p>Before writing workflows with Arbiter, you must define at least one configuration file.  See <a href="https://github.com/Achal-Aggarwal/arbiter/wiki/Configuration">Configuration</a> for details on writing a configuration file.</p>
+
+<p>See <a href="https://github.com/Achal-Aggarwal/arbiter/wiki/Workflow-Definition">Workflow Definition</a> for details on writing workflows with Arbiter.</p>
+
+<h3>
+<a id="command-line-options" class="anchor" href="#command-line-options" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Command Line Options</h3>
+
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-c </td>
+<td>Specifies the path to a configuration file/folder. Required.</td>
+</tr>
+<tr>
+<td>-l </td>
+<td>Specifies the path to a low-priority configuration file/folder.  Low priority configurations will be overridden by standard configurations if they define overlapping settings.  Optional.</td>
+</tr>
+<tr>
+<td>-i </td>
+<td>Specifies the path to a YAML workflow definition folder to process. Required.</td>
+</tr>
+<tr>
+<td>-g []</td>
+<td>Enables generating a image of the workflow graph using Graphviz.  The <code>dot</code> tool must be installed and on the <code>PATH</code> for this to work.  SVG is the default format but any format supported by <code>dot</code> may be specified as an argument to for this flag.</td>
+</tr>
+<tr>
+<td>-h</td>
+<td>Prints a usage message</td>
+</tr>
+</tbody>
+</table>
+
+<h3>
+<a id="running-arbiter" class="anchor" href="#running-arbiter" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Running Arbiter</h3>
+
+<p>First build an Arbiter uber-JAR as described in the Building section above.  Arbiter can then be invoked like so:</p>
+
+<pre><code>java -jar arbiter.jar [OPTIONS]
+</code></pre>
+
+<p>Arbiter will recursively read config files and process workflow YAML files and will generate corresponding XML file with same name. If -g is provided while running then it will generate dot files inside dot directory</p>
+      </section>
+    </div>
+
+    
+  </body>
+</html>
