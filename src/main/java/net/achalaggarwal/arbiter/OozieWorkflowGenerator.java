@@ -437,19 +437,27 @@ public class OozieWorkflowGenerator {
      * @param positional Positional arguments from the YAML workflow definition
      */
     private void addInnerActionElements(Map<String, String> properties, int configurationPosition, Directives directives, Map<String, List<String>> interpolated, Map<String, List<String>> positional) {
-        List<Map.Entry<String, List<String>>> entries = new ArrayList<>();
+        Map<String, List<String>> entries = new LinkedHashMap<>();
+
         if (interpolated != null) {
-            entries.addAll(interpolated.entrySet());
+            entries.putAll(interpolated);
         }
         if (positional != null) {
-            entries.addAll(positional.entrySet());
+            for (String arg : positional.keySet()) {
+                if (entries.containsKey(arg)) {
+                    entries.get(arg).addAll(positional.get(arg));
+                } else {
+                    entries.put(arg, positional.get(arg));
+                }
+            }
         }
 
-        for (int i = 0; i < entries.size(); i++) {
-            if (configurationPosition == i) {
+        int i = 0;
+        for (Map.Entry<String, List<String>> arg : entries.entrySet()) {
+            if (configurationPosition == i++) {
                 createConfigurationElement("configuration", new HashMap<String, String>(), properties, directives);
             }
-            addKeyMultiValueElements(entries.get(i), directives);
+            addKeyMultiValueElements(arg, directives);
         }
 
         if (entries.size() < configurationPosition) {
