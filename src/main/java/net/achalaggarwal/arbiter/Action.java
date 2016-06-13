@@ -49,7 +49,7 @@ public class Action {
     private LinkedHashMap<String, LinkedHashMap<String, String>> elem;
 
     public String getActualName() {
-        return onlyIf == null ? getName() : "?-" + getName();
+        return onlyIf == null ? getName() : "q-" + getName();
     }
 
     public void setProperty(String name, String value) {
