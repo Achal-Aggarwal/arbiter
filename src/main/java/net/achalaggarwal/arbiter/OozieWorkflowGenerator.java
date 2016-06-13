@@ -460,7 +460,7 @@ public class OozieWorkflowGenerator {
             addKeyMultiValueElements(arg, directives);
         }
 
-        if (entries.size() < configurationPosition) {
+        if (entries.size() <= configurationPosition) {
             createConfigurationElement("configuration", new HashMap<String, String>(), properties, directives);
         }
     }
