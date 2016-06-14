@@ -29,6 +29,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -47,7 +48,7 @@ import static org.apache.commons.io.filefilter.FileFilterUtils.suffixFileFilter;
 public class Arbiter {
     private Arbiter() { }
 
-    public static void main(String[] args) throws ParseException, ConfigurationException, IOException, ParserConfigurationException, TransformerException {
+    public static void main(String[] args) throws ParseException, ConfigurationException, IOException, ParserConfigurationException, TransformerException, SAXException {
         Options options = getOptions();
 
         CommandLineParser cmd = new GnuParser();

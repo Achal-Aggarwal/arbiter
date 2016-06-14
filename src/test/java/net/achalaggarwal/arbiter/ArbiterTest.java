@@ -31,6 +31,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.text.ParseException;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
@@ -94,7 +95,7 @@ public class ArbiterTest {
     }
 
     @Test
-    public void testReadWorkflowFiles() throws IOException {
+    public void testReadWorkflowFiles() throws IOException, ParseException {
         File tempFile = writeToTempFile("testworkflow.yaml");
 
         Map<File, Workflow> result = Arbiter.readWorkflowFiles(tempFile.getAbsolutePath());

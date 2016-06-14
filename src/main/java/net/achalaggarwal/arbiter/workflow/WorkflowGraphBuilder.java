@@ -64,7 +64,7 @@ public class WorkflowGraphBuilder {
      */
     public static DirectedAcyclicGraph<Action, DefaultEdge> buildWorkflowGraph(Workflow workflow, Config config, String outputFileAbsolutePath, boolean generateGraphviz, String graphvizFormat) throws WorkflowGraphException {
         forkCount = 0;
-        Map<String, Action> actionsByName = new HashMap<>();
+        Map<String, Action> actionsByName = new LinkedHashMap<>();
         List<Action> workflowActions = workflow.getActions();
 
         // Add all the actions to a map of string -> action
@@ -165,7 +165,7 @@ public class WorkflowGraphBuilder {
 
         // Start by pulling out the vertices with no incoming edges
         // These can run in parallel in a fork-join
-        Set<Action> initialNodes = new HashSet<>();
+        Set<Action> initialNodes = new LinkedHashSet<>();
         for (Action vertex : subgraph.vertexSet()) {
             if (subgraph.inDegreeOf(vertex) == 0) {
                 initialNodes.add(vertex);
