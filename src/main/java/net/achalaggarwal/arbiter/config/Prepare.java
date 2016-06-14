@@ -2,18 +2,28 @@ package net.achalaggarwal.arbiter.config;
 
 import com.google.common.collect.LinkedListMultimap;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
-@NoArgsConstructor
 public class Prepare {
   @Getter
-  private LinkedListMultimap<String, String> map = LinkedListMultimap.create();
+  final private LinkedListMultimap<String, String> map;
+
+  public Prepare() {
+    map = LinkedListMultimap.create();
+  }
 
   public Prepare(Prepare prepare, Prepare... other) {
-    map.putAll(prepare.map);
+    this();
+
+    addIfNotNull(prepare);
 
     for (Prepare p : other) {
-      map.putAll(p.map);
+      addIfNotNull(p);
+    }
+  }
+
+  private void addIfNotNull(Prepare prepare) {
+    if (prepare != null) {
+      map.putAll(prepare.getMap());
     }
   }
 
@@ -21,7 +31,7 @@ public class Prepare {
     map.put(key, value);
   }
 
-  public boolean isEmpty(){
+  public boolean isEmpty() {
     return map.isEmpty();
   }
 }
