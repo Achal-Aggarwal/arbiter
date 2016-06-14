@@ -22,6 +22,7 @@
 package net.achalaggarwal.arbiter;
 
 import lombok.Data;
+import net.achalaggarwal.arbiter.config.Prepare;
 
 import java.util.*;
 

@@ -22,10 +22,7 @@
 package net.achalaggarwal.arbiter;
 
 import com.google.common.collect.LinkedListMultimap;
-import net.achalaggarwal.arbiter.config.ActionType;
-import net.achalaggarwal.arbiter.config.Config;
-import net.achalaggarwal.arbiter.config.Credential;
-import net.achalaggarwal.arbiter.config.Global;
+import net.achalaggarwal.arbiter.config.*;
 import net.achalaggarwal.arbiter.exception.WorkflowGraphException;
 import net.achalaggarwal.arbiter.util.GraphvizGenerator;
 import net.achalaggarwal.arbiter.workflow.WorkflowGraphBuilder;
@@ -331,9 +328,11 @@ public class OozieWorkflowGenerator {
     }
 
     private void addPrepareIfPresent(ActionType type, Action action, Directives directives) {
-        Prepare prepare = type.getPrepare() == null ? action.getPrepare() : type.getPrepare();
+        Prepare prepare = new Prepare(
+          type.getPrepare(), action.getPrepare()
+        );
 
-        if (prepare == null) {
+        if (prepare.isEmpty()) {
             return;
         }
 
@@ -341,10 +340,10 @@ public class OozieWorkflowGenerator {
 
         directives.add("prepare");
 
-        for (Map.Entry<String, String> preapreStep : p.entries()) {
+        for (Map.Entry<String, String> fsOperation : p.entries()) {
             directives
-              .add(preapreStep.getKey())
-              .attr("path", preapreStep.getValue())
+              .add(fsOperation.getKey())
+              .attr("path", fsOperation.getValue())
               .up();
         }
 

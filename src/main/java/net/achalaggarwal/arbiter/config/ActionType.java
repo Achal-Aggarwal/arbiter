@@ -22,7 +22,6 @@
 package net.achalaggarwal.arbiter.config;
 
 import lombok.Data;
-import net.achalaggarwal.arbiter.Prepare;
 
 import java.util.HashMap;
 import java.util.List;
