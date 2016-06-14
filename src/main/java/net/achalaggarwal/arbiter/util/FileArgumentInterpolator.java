@@ -68,11 +68,11 @@ public class FileArgumentInterpolator {
             public List<String> apply(List<String> input) {
                 List<String> result = new ArrayList<>(input.size());
                 for (String s : input) {
-                    if (s.startsWith(PREFIX) && s.endsWith(SUFFIX)){
+                    if (s.startsWith(PREFIX) && s.endsWith(SUFFIX)) {
                         try {
                             String fileContent = StringUtils.join(
                               Files.readAllLines(
-                                new File(baseDirPath, s.substring(2, s.length()-2)).toPath(),
+                                new File(baseDirPath, s.substring(2, s.length() - 2)).toPath(),
                                 defaultCharset()
                               ),
                               System.lineSeparator()
