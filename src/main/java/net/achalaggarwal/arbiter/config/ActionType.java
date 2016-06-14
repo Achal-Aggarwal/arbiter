@@ -22,6 +22,7 @@
 package net.achalaggarwal.arbiter.config;
 
 import lombok.Data;
+import net.achalaggarwal.arbiter.Prepare;
 
 import java.util.HashMap;
 import java.util.List;
@@ -45,7 +46,7 @@ public class ActionType {
     private Map<String, String> defaultInterpolations;
     private boolean lowPrecedence;
     private int configurationPosition;
-    private Map<String, String> prepare;
+    private Prepare prepare;
 
     public boolean isLowPrecedence() {
         return lowPrecedence;

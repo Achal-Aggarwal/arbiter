@@ -22,6 +22,7 @@
 package net.achalaggarwal.arbiter.util;
 
 import com.google.common.base.Function;
+import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.text.StrSubstitutor;
 
@@ -107,6 +108,22 @@ public class NamedArgumentInterpolator {
                 return StrSubstitutor.replace(s, interpolationArgs, PREFIX, SUFFIX);
             }
         });
+    }
+
+    public static LinkedListMultimap<String, String> interpolate(LinkedListMultimap<String, String> input, final Map<String, String> namedArgs, final Map<String, String> defaultArgs) {
+        if (namedArgs == null || input == null) {
+            return input;
+        }
+
+        final Map<String, String> interpolationArgs = createFinalInterpolationMap(namedArgs, defaultArgs);
+
+        LinkedListMultimap<String, String> result = LinkedListMultimap.create();
+
+        for (Map.Entry<String, String> s : input.entries()) {
+            result.put(s.getKey(), StrSubstitutor.replace(s.getValue(), interpolationArgs, PREFIX, SUFFIX));
+        }
+
+        return result;
     }
 
     /**

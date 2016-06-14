@@ -16,6 +16,7 @@
 
 package net.achalaggarwal.arbiter.util;
 
+import com.google.common.collect.LinkedListMultimap;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -150,6 +151,26 @@ public class NamedArgumentInterpolatorTest {
         Map<String, List<String>> result = NamedArgumentInterpolator.interpolate(args, namedArgs, null, listArgs);
         Map<String, List<String>> expected = new HashMap<>();
         expected.put("one", Arrays.asList("value", "three", "other_$$list_key$$_stuff"));
+
+        assertEquals(expected, result);
+        assertTrue(listArgs.containsKey("list_key"));
+    }
+
+    @Test
+    public void testLinkedListMultiMapInterpolation() {
+        LinkedListMultimap<String, String> args = LinkedListMultimap.create();
+        args.put("one", "abc");
+        args.put("two", "$$key$$");
+        args.put("two", "other_$$list_key$$_stuff");
+        args.put("one", "def");
+
+        LinkedListMultimap<String, String> result = NamedArgumentInterpolator.interpolate(args, namedArgs, null);
+
+        LinkedListMultimap<String, String> expected = LinkedListMultimap.create();
+        expected.put("one", "abc");
+        expected.put("two", "value");
+        expected.put("two", "other_$$list_key$$_stuff");
+        expected.put("one", "def");
 
         assertEquals(expected, result);
         assertTrue(listArgs.containsKey("list_key"));

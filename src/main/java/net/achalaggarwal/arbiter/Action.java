@@ -42,7 +42,7 @@ public class Action {
     private Map<String, String> namedArgs;
     private Map<String, String> properties;
     private String onlyIf;
-    private Map<String, String> prepare;
+    private Prepare prepare;
     private String retryMax;
     private String retryInterval;
 
