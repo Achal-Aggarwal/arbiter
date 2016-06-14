@@ -21,16 +21,17 @@
 
 package net.achalaggarwal.arbiter;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.Lists;
 import net.achalaggarwal.arbiter.config.*;
 import net.achalaggarwal.arbiter.exception.WorkflowGraphException;
 import net.achalaggarwal.arbiter.util.GraphvizGenerator;
 import net.achalaggarwal.arbiter.workflow.WorkflowGraphBuilder;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import org.jgrapht.experimental.dag.DirectedAcyclicGraph;
 import org.jgrapht.graph.DefaultEdge;
@@ -169,17 +170,11 @@ public class OozieWorkflowGenerator {
                         break;
                     default:
                         createActionElement(a, workflowGraph, transition, a.equals(errorHandler) ? finalTransition : errorTransition, directives);
-                        directives.up();
                         break;
                 }
             }
             if (kill != null) {
-                directives.add("kill")
-                        .attr("name", kill.getName())
-                        .add("message")
-                        .set(kill.getNamedArgs().get("message"))
-                        .up()
-                        .up();
+                addKillNode(directives, kill.getName(), kill.getNamedArgs().get("message"));
             }
             if (end != null) {
                 directives.add("end")
@@ -194,6 +189,15 @@ public class OozieWorkflowGenerator {
             }
             writeDocument(outputFileAbsolutePath, xmlDoc, transformer, workflow.getName(), currentDateString);
         }
+    }
+
+    private void addKillNode(Directives directives, String name, String message) {
+        directives.add("kill")
+                .attr("name", name)
+                .add("message")
+                .set(message)
+                .up()
+                .up();
     }
 
     private void addGlobal(Config config, Workflow workflow, Directives directives) {
@@ -281,8 +285,11 @@ public class OozieWorkflowGenerator {
         directives.up();
 
         String okTransitionName = action.getForceOk() != null ? action.getForceOk() : transition.getName();
+
+        Pair<String, Directives> transitionDirectivePair = addConditionalKills(action, okTransitionName);
+
         directives.add("ok")
-                .attr("to", okTransitionName)
+                .attr("to", transitionDirectivePair.getLeft())
                 .up();
 
         // We allow forcing a particular error transition regardless of other considerations
@@ -297,6 +304,10 @@ public class OozieWorkflowGenerator {
         directives.add("error")
                 .attr("to", errorTransitionName)
                 .up();
+
+        directives.up();
+
+        directives.append(transitionDirectivePair.getRight());
     }
 
     private void addElemsIfPresent(Action action, Directives directives) {
@@ -371,6 +382,46 @@ public class OozieWorkflowGenerator {
           .up()
           .up();
 
+    }
+
+    private Pair<String, Directives> addConditionalKills(Action action, String defaultTransitionName) {
+        Directives directives = new Directives();
+
+        if (action.getKillIf() == null || action.getKillIf().isEmpty()) {
+            return Pair.of(defaultTransitionName, directives);
+        }
+
+        String decisionName = "ki-" + action.getActualName();
+        directives
+          .add("decision")
+          .attr("name", decisionName)
+          .add("switch");
+
+        int i = 0;
+        LinkedHashMap<String, String> killNodes = new LinkedHashMap<>();
+        for (ConditionalKill conditionalKill : action.getKillIf()) {
+            String killNodeName = "k" + i++ + "-" + action.getActualName();
+            killNodes.put(killNodeName, conditionalKill.getMessage());
+            directives
+              .add("case")
+              .attr("to", killNodeName)
+              .set(conditionalKill.getCondition())
+              .up();
+        }
+
+        directives
+          .add("default")
+          .attr("to", defaultTransitionName)
+          .up()
+          .up()
+          .up();
+
+        for (Map.Entry<String, String> killNode : killNodes.entrySet()) {
+            addKillNode(directives, killNode.getKey(), killNode.getValue());
+        }
+
+
+        return Pair.of(decisionName, directives);
     }
 
     /**

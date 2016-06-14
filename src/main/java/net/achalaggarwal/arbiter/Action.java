@@ -43,6 +43,7 @@ public class Action {
     private Map<String, String> namedArgs;
     private Map<String, String> properties;
     private String onlyIf;
+    private List<ConditionalKill> killIf;
     private Prepare prepare;
     private String retryMax;
     private String retryInterval;
