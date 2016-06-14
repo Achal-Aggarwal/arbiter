@@ -54,6 +54,7 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static net.achalaggarwal.arbiter.util.FileArgumentInterpolator.interpolateFileVars;
 import static net.achalaggarwal.arbiter.util.NamedArgumentInterpolator.interpolate;
 
 /**
@@ -169,7 +170,7 @@ public class OozieWorkflowGenerator {
                                 .up();
                         break;
                     default:
-                        createActionElement(a, workflowGraph, transition, a.equals(errorHandler) ? finalTransition : errorTransition, directives);
+                        createActionElement(inputFile, a, workflowGraph, transition, a.equals(errorHandler) ? finalTransition : errorTransition, directives);
                         break;
                 }
             }
@@ -247,13 +248,14 @@ public class OozieWorkflowGenerator {
     /**
      * Add the XML element for an action
      *
+     * @param inputFile
      * @param action The action for which to add the element
      * @param workflowGraph The full workflow graph
      * @param transition The OK transition for this action
      * @param errorTransition The error transition for this action if it is not inside a fork/join pair
      * @param directives The Xembly Directives object to which to add the new XML elements
      */
-    private void createActionElement(Action action, DirectedAcyclicGraph<Action, DefaultEdge> workflowGraph, Action transition, Action errorTransition, Directives directives) {
+    private void createActionElement(File inputFile, Action action, DirectedAcyclicGraph<Action, DefaultEdge> workflowGraph, Action transition, Action errorTransition, Directives directives) {
         ActionType type = getActionType(action.getType());
 
         addSwitchIfRequired(action, directives, transition);
@@ -276,7 +278,11 @@ public class OozieWorkflowGenerator {
         addElemsIfPresent(action, directives);
 
         // There is an outer action tag and an inner tag corresponding to the action type
-        Map<String, List<String>> interpolated = interpolate(type.getDefaultArgs(), action.getNamedArgs(), type.getDefaultInterpolations(), action.getPositionalArgs());
+        Map<String, List<String>> interpolated = interpolateFileVars(
+          inputFile.getParent(),
+          interpolate(type.getDefaultArgs(), action.getNamedArgs(), type.getDefaultInterpolations(), action.getPositionalArgs())
+        );
+
         Map<String, String> mergedConfigurationProperties = new HashMap<>(type.getProperties());
         if (action.getProperties() != null) {
             mergedConfigurationProperties.putAll(action.getProperties());
