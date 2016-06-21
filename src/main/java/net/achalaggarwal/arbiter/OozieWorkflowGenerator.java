@@ -42,7 +42,6 @@ import org.xembly.ImpossibleModificationException;
 import org.xembly.Xembler;
 import org.xml.sax.SAXException;
 
-import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
@@ -53,8 +52,6 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static java.lang.String.format;
@@ -68,7 +65,6 @@ import static net.achalaggarwal.arbiter.util.NamedArgumentInterpolator.interpola
  */
 public class OozieWorkflowGenerator {
     private static final Logger LOG = Logger.getLogger(OozieWorkflowGenerator.class);
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("YYYY-MM-dd HH:mm:ss");
 
     private Config config;
     private Map<String, ActionType> actionTypeCache;
@@ -86,42 +82,20 @@ public class OozieWorkflowGenerator {
      */
     public void generateOozieWorkflows(Map<File, Workflow> workflows, boolean generateGraphviz, String graphvizFormat) throws IOException, ParserConfigurationException, TransformerException, SAXException {
 
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        TransformerFactory transformerFactory = TransformerFactory.newInstance();
-        Transformer transformer = transformerFactory.newTransformer();
-        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
-        Date currentDate = new Date();
-        String currentDateString = DATE_FORMAT.format(currentDate);
-
         for (File inputFile : workflows.keySet()) {
             String parentDir = inputFile.getParentFile().getAbsolutePath();
-            String inputFileName = inputFile.getName();
-            inputFileName = inputFileName.substring(0, inputFileName.lastIndexOf("."));
-            String outputFileAbsolutePath = new File(parentDir, inputFileName).getAbsolutePath();
-
-            File dotFilesBaseDir = new File(parentDir, "dot");
-            FileUtils.forceMkdir(dotFilesBaseDir);
-            String outputDotFilesAbsolutePath = new File(dotFilesBaseDir, inputFileName).getAbsolutePath();
-
+            String inputFileName = inputFile.getName().substring(0, inputFile.getName().lastIndexOf("."));
             Workflow workflow = workflows.get(inputFile);
 
-
             DirectedAcyclicGraph<Action, DefaultEdge> workflowGraph = null;
-
+            DirectedAcyclicGraph<Action, DefaultEdge> inputGraph = null;
             try {
-                workflowGraph = WorkflowGraphBuilder.buildWorkflowGraph(workflow, config, outputDotFilesAbsolutePath, generateGraphviz, graphvizFormat);
+                inputGraph = WorkflowGraphBuilder.buildInputGraph(workflow, config);
+                workflowGraph = WorkflowGraphBuilder.buildWorkflowGraph(inputGraph, workflow, config);
             } catch (WorkflowGraphException w) {
                 LOG.error("Unable to generate workflow", w);
                 System.exit(1);
             }
-
-            if (generateGraphviz) {
-                GraphvizGenerator.generateGraphviz(workflowGraph, outputDotFilesAbsolutePath + ".dot", graphvizFormat);
-            }
-
-            Document xmlDoc = builder.newDocument();
 
             Directives directives = new Directives();
             createRootElement(workflow, directives);
@@ -187,12 +161,27 @@ public class OozieWorkflowGenerator {
                         .up();
             }
 
+            Document xmlDoc = DocumentBuilderFactory
+              .newInstance()
+              .newDocumentBuilder()
+              .newDocument();
+
             try {
                 new Xembler(directives).apply(xmlDoc);
             } catch (ImpossibleModificationException e) {
                 throw new RuntimeException(e);
             }
-            writeDocument(outputFileAbsolutePath, xmlDoc, transformer, workflow.getName(), currentDateString);
+
+            String outputFileAbsolutePath = new File(parentDir, inputFileName).getAbsolutePath();
+            writeDocument(outputFileAbsolutePath, xmlDoc);
+
+            if (generateGraphviz) {
+                File dotFilesBaseDir = new File(parentDir, "dot");
+                FileUtils.forceMkdir(dotFilesBaseDir);
+                String outputDotFilesAbsolutePath = new File(dotFilesBaseDir, inputFileName).getAbsolutePath();
+                GraphvizGenerator.generateGraphviz(inputGraph, outputDotFilesAbsolutePath + "-input.dot", graphvizFormat);
+                GraphvizGenerator.generateGraphviz(workflowGraph, outputDotFilesAbsolutePath + ".dot", graphvizFormat);
+            }
         }
     }
 
@@ -592,34 +581,20 @@ public class OozieWorkflowGenerator {
      *
      * @param outputFileAbsolutePath The output file path for the XML file.
      * @param xmlDoc The document to write out
-     * @param transformer The XML transformer used to produce the output
-     * @param name The name of the workflow
-     * @param currentDateString A string representation of the current date, used in a comment in the output file
      * @throws TransformerException
      * @throws IOException
      */
-    private void writeDocument(String outputFileAbsolutePath, Document xmlDoc, Transformer transformer, String name, String currentDateString) throws TransformerException, IOException, ParserConfigurationException, SAXException {
-        DOMSource source = new DOMSource(xmlDoc);
+    private void writeDocument(String outputFileAbsolutePath, Document xmlDoc) throws TransformerException, IOException, ParserConfigurationException, SAXException {
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = transformerFactory.newTransformer();
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
 
         File outputFile = new File(outputFileAbsolutePath + ".xml");
-        File tempFile = Files.createTempFile("arbiter", outputFile.getName()).toFile();
-
-        StreamResult result = new StreamResult(tempFile);
-        transformer.transform(source, result);
-
-        // We want a comment indicating that this file is autogenerated as the first line
-        // There's no good way to do this from the XML DOM, so we have to do it manually.
-        List<String> newLines = FileUtils.readLines(tempFile);
-
-        if (outputFile.isFile()) {
-            List<String> existingLines = FileUtils.readLines(outputFile);
-            if (newLines.equals(existingLines.subList(0, existingLines.size() - 1))) {
-                return;
-            }
-        }
-
-        newLines.add(format("<!-- Autogenerated by Arbiter on [%s] -->", currentDateString));
-        FileUtils.writeLines(outputFile, newLines);
+        transformer.transform(
+          new DOMSource(xmlDoc),
+          new StreamResult(outputFile)
+        );
     }
 
     /**

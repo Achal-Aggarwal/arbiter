@@ -21,12 +21,11 @@
 
 package net.achalaggarwal.arbiter.workflow;
 
+import lombok.val;
 import net.achalaggarwal.arbiter.Action;
 import net.achalaggarwal.arbiter.Workflow;
 import net.achalaggarwal.arbiter.config.Config;
 import net.achalaggarwal.arbiter.exception.WorkflowGraphException;
-import net.achalaggarwal.arbiter.util.GraphvizGenerator;
-import net.achalaggarwal.arbiter.util.NamedArgumentInterpolator;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
@@ -36,6 +35,8 @@ import org.jgrapht.experimental.dag.DirectedAcyclicGraph;
 import org.jgrapht.graph.DefaultEdge;
 
 import java.util.*;
+
+import static net.achalaggarwal.arbiter.util.NamedArgumentInterpolator.interpolate;
 
 
 /**
@@ -56,19 +57,15 @@ public class WorkflowGraphBuilder {
      *
      * @param workflow Arbiter Workflow object
      * @param config Arbiter Config object
-     * @param outputFileAbsolutePath Output file path without extension for Graphviz graphs
-     * @param generateGraphviz Indicate if Graphviz graphs should be generated for workflows
-     * @param graphvizFormat The format in which Graphviz graphs should be generated if enabled
-     * @return DirectedAcyclicGraph DAG of the workflow
+     * @return DirectedAcyclicGraph DAG of the input workflow
      * @throws WorkflowGraphException
      */
-    public static DirectedAcyclicGraph<Action, DefaultEdge> buildWorkflowGraph(Workflow workflow, Config config, String outputFileAbsolutePath, boolean generateGraphviz, String graphvizFormat) throws WorkflowGraphException {
-        forkCount = 0;
+    @SuppressWarnings("Duplicates")
+    public static DirectedAcyclicGraph<Action, DefaultEdge> buildInputGraph(Workflow workflow, Config config) throws WorkflowGraphException {
         Map<String, Action> actionsByName = new LinkedHashMap<>();
-        List<Action> workflowActions = workflow.getActions();
 
         // Add all the actions to a map of string -> action
-        for (Action a : workflowActions) {
+        for (Action a : workflow.getActions()) {
             actionsByName.put(a.getName(), a);
         }
 
@@ -76,12 +73,12 @@ public class WorkflowGraphBuilder {
         DirectedAcyclicGraph<Action, DefaultEdge> inputGraph = new DirectedAcyclicGraph<>(DefaultEdge.class);
 
         // Add all the actions as vertices. At this point there are no connections within the graph, just vertices.
-        for (Action a : workflowActions) {
+        for (Action a : workflow.getActions()) {
             inputGraph.addVertex(a);
         }
 
         // We need to traverse a second time so all the vertices are present when adding edges
-        for (Action a : workflowActions) {
+        for (Action a : workflow.getActions()) {
             if (a.getDependencies() != null) {
                 for (String d : a.getDependencies()) {
                     Action source = actionsByName.get(d);
@@ -99,56 +96,64 @@ public class WorkflowGraphBuilder {
             }
         }
 
-        if (generateGraphviz) {
-            GraphvizGenerator.generateGraphviz(inputGraph, outputFileAbsolutePath + "-input.dot", graphvizFormat);
-        }
+        return inputGraph;
+    }
 
-        // Final DAG we will be returning
-        DirectedAcyclicGraph<Action, DefaultEdge> workflowGraph;
-        Action startTransitionNode;
-        Action endTransitionNode;
+    /**
+     * Build a workflow graph from the workflow definition, inserting fork/join pairs as appropriate for parallel
+     *
+     *
+     * @param inputGraph
+     * @param workflow Arbiter Workflow object
+     * @param config Arbiter Config object
+     * @return DirectedAcyclicGraph DAG of the workflow
+     * @throws WorkflowGraphException
+     */
+    public static DirectedAcyclicGraph<Action, DefaultEdge> buildWorkflowGraph(DirectedAcyclicGraph<Action, DefaultEdge> inputGraph, Workflow workflow, Config config) throws WorkflowGraphException {
+        forkCount = 0;
 
         try {
             // Process the graph into its properly connected and organized structure.
-            Triple<DirectedAcyclicGraph<Action, DefaultEdge>, Action, Action> workflowGraphTriple = processSubcomponents(inputGraph);
-            workflowGraph = workflowGraphTriple.getLeft();
-            startTransitionNode = workflowGraphTriple.getMiddle();
-            endTransitionNode = workflowGraphTriple.getRight();
+            val workflowGraphTriple = processSubcomponents(inputGraph);
+
+            // Final DAG we will be returning
+            DirectedAcyclicGraph<Action, DefaultEdge> workflowGraph = workflowGraphTriple.getLeft();
+            Action startTransitionNode = workflowGraphTriple.getMiddle();
+            Action endTransitionNode = workflowGraphTriple.getRight();
 
             // These are the standard control flow nodes that must be present in every workflow
-            Action start = new Action();
-            start.setName("start");
-            start.setType("start");
+            Action start = Action.getStartAction();
             workflowGraph.addVertex(start);
             workflowGraph.addDagEdge(start, startTransitionNode);
 
-            Action end = new Action();
-            end.setName("end");
-            end.setType("end");
+            Action end = Action.getEndAction();
             workflowGraph.addVertex(end);
 
-            if (workflow.getErrorHandler() != null) {
-                workflowGraph.addVertex(workflow.getErrorHandler());
-                workflowGraph.addDagEdge(workflow.getErrorHandler(), end);
-                workflowGraph.addDagEdge(endTransitionNode, workflow.getErrorHandler());
-            } else {
-                workflowGraph.addDagEdge(endTransitionNode, end);
-            }
+            setCustomErrorHandlerIfPresent(workflow, workflowGraph, endTransitionNode, end);
 
             // The kill node will be used as the error transition when generating the XML as appropriate
-            // These is no need to add any edges to it now
+            // There is no need to add any edges to it now
             if (config.getKillMessage() != null && config.getKillName() != null) {
-                Action kill = new Action();
-                kill.setType("kill");
-                kill.setName(config.getKillName());
-                kill.setProperty("message", NamedArgumentInterpolator.interpolate(config.getKillMessage(), ImmutableMap.of("name", workflow.getName()), null));
-                workflowGraph.addVertex(kill);
+                workflowGraph.addVertex(Action.getKillAction(
+                  config.getKillName(),
+                  interpolate(config.getKillMessage(), ImmutableMap.of("name", workflow.getName()), null)
+                ));
             }
+
+            return workflowGraph;
         } catch (DirectedAcyclicGraph.CycleFoundException e) {
             throw new WorkflowGraphException("Cycle found while generating workflow", e);
         }
+    }
 
-        return workflowGraph;
+    private static void setCustomErrorHandlerIfPresent(Workflow workflow, DirectedAcyclicGraph<Action, DefaultEdge> workflowGraph, Action endTransitionNode, Action end) throws DirectedAcyclicGraph.CycleFoundException {
+        if (workflow.getErrorHandler() != null) {
+            workflowGraph.addVertex(workflow.getErrorHandler());
+            workflowGraph.addDagEdge(workflow.getErrorHandler(), end);
+            workflowGraph.addDagEdge(endTransitionNode, workflow.getErrorHandler());
+        } else {
+            workflowGraph.addDagEdge(endTransitionNode, end);
+        }
     }
 
     /**

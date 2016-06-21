@@ -68,4 +68,25 @@ public class Action {
 
         positionalArgs.put(name, value);
     }
+
+    public static Action getStartAction() {
+        return new Action() { {
+            setName("start");
+            setType("start");
+        } };
+    }
+
+    public static Action getEndAction() {
+        return new Action() { {
+            setName("end");
+            setType("end");
+        } };
+    }
+
+    public static Action getKillAction(final String name, final String message) {
+        return new Action() { {
+            setName(name);
+            setProperty("message", message);
+        } };
+    }
 }

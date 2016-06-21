@@ -75,8 +75,12 @@ public class Arbiter {
         boolean generateGraphviz = parsed.hasOption("g");
         String graphvizFormat = parsed.getOptionValue("g", "svg");
 
-        OozieWorkflowGenerator generator = new OozieWorkflowGenerator(merged);
-        generator.generateOozieWorkflows(workflows, generateGraphviz, graphvizFormat);
+        new OozieWorkflowGenerator(merged)
+          .generateOozieWorkflows(
+            workflows,
+            generateGraphviz,
+            graphvizFormat
+          );
     }
 
     /**
