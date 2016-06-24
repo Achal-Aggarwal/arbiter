@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -50,12 +51,9 @@ public class FileArgumentInterpolator {
      * Performs variable interpolation using the named arguments from an Action
      * This will create a new map if any interpolation is performed
      *
-//     * @param input The positional arguments possibly containing keys to be interpolated
-//     * @param namedArgs The key/value pairs used for interpolation
-//     * @param defaultArgs Default values for the named args, used if an interpolation key has no value given
-//     * @param listArgs The key/value list pairs used for list interpolation. List interpolation allows for interpolating a list of values in place of a single key
-//     *                 If any interpolation is performed this map is modified to remove the key that was interpolated
-//     *
+     * @param baseDirPath Path of parent dir to use to find a file
+     * @param input The positional arguments possibly containing keys to be interpolated
+     *
      * @return A copy of input with variable interpolation performed
      */
     public static Map<String, List<String>> interpolateFileVars(final String baseDirPath, Map<String, List<String>> input) {
