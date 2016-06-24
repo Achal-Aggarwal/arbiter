@@ -17,12 +17,12 @@ import static org.junit.Assert.assertThat;
 public class FileArgumentInterpolatorTest {
 
   @Test(expected = RuntimeException.class)
-  public void shouldThrowExceptionIfCouldntResolveVariable(){
+  public void shouldThrowExceptionIfCouldntResolveVariable() {
     interpolateFileVars(
       "somePath",
-      new HashMap<String, List<String>>(){{
+      new HashMap<String, List<String>>() { {
         put("vars", Arrays.asList("@@file@@"));
-      }}
+      } }
     ).get("vars");
   }
 
@@ -32,9 +32,9 @@ public class FileArgumentInterpolatorTest {
     FileUtils.writeStringToFile(tempFile, "file-content");
     List<String> strings = interpolateFileVars(
       tempFile.getParent(),
-      new HashMap<String, List<String>>() {{
+      new HashMap<String, List<String>>() { {
         put("vars", Arrays.asList("@@" + tempFile.getName() + "@@"));
-      }}
+      } }
     ).get("vars");
 
     assertThat(strings.get(0), is("file-content"));

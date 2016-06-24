@@ -30,23 +30,17 @@ import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jgrapht.experimental.dag.DirectedAcyclicGraph;
 import org.jgrapht.graph.DefaultEdge;
-import org.w3c.dom.Document;
 import org.xembly.Directives;
-import org.xembly.ImpossibleModificationException;
-import org.xembly.Xembler;
 import org.xml.sax.SAXException;
 
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+
+import static net.achalaggarwal.arbiter.util.DocumentWriter.writeToStreamResult;
 
 /**
  * Generates Oozie workflows from Arbiter workflows
@@ -113,26 +107,7 @@ public class OozieWorkflowGenerator {
      * @throws IOException
      */
     private void writeDocument(String parentDir, String inputFileName, Directives directives) throws TransformerException, IOException, ParserConfigurationException, SAXException {
-        Document xmlDoc = DocumentBuilderFactory
-          .newInstance()
-          .newDocumentBuilder()
-          .newDocument();
-
-        try {
-            new Xembler(directives).apply(xmlDoc);
-        } catch (ImpossibleModificationException e) {
-            throw new RuntimeException(e);
-        }
-
-        TransformerFactory transformerFactory = TransformerFactory.newInstance();
-        Transformer transformer = transformerFactory.newTransformer();
-        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
-
         File outputFile = new File(parentDir, inputFileName + ".xml");
-        transformer.transform(
-          new DOMSource(xmlDoc),
-          new StreamResult(outputFile)
-        );
+        writeToStreamResult(directives, new StreamResult(outputFile));
     }
 }
