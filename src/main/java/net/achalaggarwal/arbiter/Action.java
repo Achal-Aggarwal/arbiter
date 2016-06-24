@@ -86,6 +86,7 @@ public class Action {
     public static Action getKillAction(final String name, final String message) {
         return new Action() { {
             setName(name);
+            setType("kill");
             setProperty("message", message);
         } };
     }
