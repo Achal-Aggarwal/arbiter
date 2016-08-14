@@ -171,16 +171,18 @@ public class ActionNode extends Node {
     }
 
     int i = 0;
+    LinkedHashMap<String, String> killNodesCases = new LinkedHashMap<>();
     LinkedHashMap<String, String> killNodes = new LinkedHashMap<>();
     for (ConditionalKill conditionalKill : action.getKillIf()) {
       String killNodeName = "k" + i++ + "-" + action.getActualName();
+      killNodesCases.put(killNodeName, conditionalKill.getCondition());
       killNodes.put(killNodeName, conditionalKill.getMessage());
     }
 
     String decisionName = "ki-" + action.getActualName();
     new SwitchNode(
       decisionName,
-      killNodes,
+      killNodesCases,
       defaultTransitionName
     ).appendTo(directives);
 
