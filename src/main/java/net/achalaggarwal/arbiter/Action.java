@@ -33,6 +33,7 @@ import java.util.*;
  */
 @Data
 public class Action {
+    private String comment;
     private String name;
     private String type;
     private String cred;

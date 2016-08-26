@@ -21,6 +21,7 @@ import static net.achalaggarwal.arbiter.util.FileArgumentInterpolator.interpolat
 import static net.achalaggarwal.arbiter.util.NamedArgumentInterpolator.interpolate;
 
 public class ActionNode extends Node {
+  public static final String ARBITER_COMMENT_TAG = "ARBITER-COMMENT";
   private Action self = null;
   private ActionType type = null;
   private Action transition = null;
@@ -42,6 +43,13 @@ public class ActionNode extends Node {
     Directives directives = new Directives();
 
     addSwitchIfRequired(self, directives, transition);
+
+    if (self.getComment() != null) {
+      directives
+        .add(ARBITER_COMMENT_TAG)
+        .set(self.getComment())
+        .up();
+    }
 
     directives
       .add("action")

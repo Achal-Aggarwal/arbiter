@@ -26,6 +26,7 @@ import net.achalaggarwal.arbiter.exception.WorkflowGraphException;
 import net.achalaggarwal.arbiter.util.GraphvizGenerator;
 import net.achalaggarwal.arbiter.workflow.WorkflowGraphBuilder;
 import net.achalaggarwal.arbiter.workflow.WorkflowNode;
+import net.achalaggarwal.arbiter.workflow.node.ActionNode;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.jgrapht.experimental.dag.DirectedAcyclicGraph;
@@ -41,6 +42,7 @@ import java.io.IOException;
 import java.util.Map;
 
 import static net.achalaggarwal.arbiter.util.DocumentWriter.writeToStreamResult;
+import static org.apache.commons.io.FileUtils.writeStringToFile;
 
 /**
  * Generates Oozie workflows from Arbiter workflows
@@ -109,5 +111,12 @@ public class OozieWorkflowGenerator {
     private void writeDocument(String parentDir, String inputFileName, Directives directives) throws TransformerException, IOException, ParserConfigurationException, SAXException {
         File outputFile = new File(parentDir, inputFileName + ".xml");
         writeToStreamResult(directives, new StreamResult(outputFile));
+        writeStringToFile(outputFile, replaceArbiterCommentTags(outputFile));
+    }
+
+    private static String replaceArbiterCommentTags(File outputFile) throws IOException {
+        return FileUtils.readFileToString(outputFile)
+          .replace("<" + ActionNode.ARBITER_COMMENT_TAG + ">", "<!--")
+          .replace("</" + ActionNode.ARBITER_COMMENT_TAG + ">", "-->");
     }
 }
