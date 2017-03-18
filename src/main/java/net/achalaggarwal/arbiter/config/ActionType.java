@@ -45,6 +45,7 @@ public class ActionType {
     private Map<String, String> defaultInterpolations;
     private boolean lowPrecedence;
     private int configurationPosition;
+    private int preparePosition;
     private Prepare prepare;
 
     public boolean isLowPrecedence() {
