@@ -24,13 +24,13 @@ public class DocumentWriter {
    * @param directives The document to write out
    * @param streamResult The output StreamResult
    * @throws TransformerException
-   * @throws ParserConfigurationException, TransformerException
+   * @throws ParserConfigurationException
    */
   public static void writeToStreamResult(Directives directives, StreamResult streamResult) throws ParserConfigurationException, TransformerException {
     Document xmlDoc = DocumentBuilderFactory
-      .newInstance()
-      .newDocumentBuilder()
-      .newDocument();
+            .newInstance()
+            .newDocumentBuilder()
+            .newDocument();
 
     try {
       new Xembler(directives).apply(xmlDoc);
@@ -44,8 +44,8 @@ public class DocumentWriter {
     transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
 
     transformer.transform(
-      new DOMSource(xmlDoc),
-      streamResult
+            new DOMSource(xmlDoc),
+            streamResult
     );
   }
 }
