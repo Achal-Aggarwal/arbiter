@@ -1,11 +1,9 @@
 package net.achalaggarwal.arbiter.workflow.node;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.LinkedListMultimap;
 import net.achalaggarwal.arbiter.Action;
 import net.achalaggarwal.arbiter.ConditionalKill;
 import net.achalaggarwal.arbiter.config.ActionType;
-import net.achalaggarwal.arbiter.config.Prepare;
 import net.achalaggarwal.arbiter.util.NodeGen;
 import net.achalaggarwal.arbiter.workflow.Node;
 import org.apache.commons.lang3.tuple.Pair;
@@ -65,8 +63,7 @@ public class ActionNode extends Node {
       directives.attr("xmlns", type.getXmlns());
     }
 
-    addPrepareIfPresent(type, self, directives);
-
+    PrepareNode prepareNode = new PrepareNode(self, type);
     addElemsIfPresent(self, directives);
 
     // There is an outer action tag and an inner tag corresponding to the action type
@@ -79,7 +76,7 @@ public class ActionNode extends Node {
     if (self.getProperties() != null) {
       mergedConfigurationProperties.putAll(self.getProperties());
     }
-    NodeGen.addInnerActionElements(mergedConfigurationProperties, type.getConfigurationPosition(), directives, interpolated, self.getPositionalArgs());
+    NodeGen.addInnerActionElements(mergedConfigurationProperties, type.getConfigurationPosition(), directives, interpolated, self.getPositionalArgs(), prepareNode, type.getPreparePosition());
     directives.up();
 
     String okTransitionName = self.getForceOk() != null ? self.getForceOk() : transition.getName();
@@ -127,29 +124,6 @@ public class ActionNode extends Node {
         return;
       }
     }
-  }
-
-  private void addPrepareIfPresent(ActionType type, Action action, Directives directives) {
-    Prepare prepare = new Prepare(
-      type.getPrepare(), action.getPrepare()
-    );
-
-    if (prepare.isEmpty()) {
-      return;
-    }
-
-    LinkedListMultimap<String, String> p = interpolate(prepare.getMap(), action.getNamedArgs(), type.getDefaultInterpolations());
-
-    directives.add("prepare");
-
-    for (Map.Entry<String, String> fsOperation : p.entries()) {
-      directives
-        .add(fsOperation.getKey())
-        .attr("path", fsOperation.getValue())
-        .up();
-    }
-
-    directives.up();
   }
 
   private void addElemsIfPresent(Action action, Directives directives) {

@@ -30,8 +30,8 @@ public class GlobalNode extends Node {
       self.getConfigurationPosition(),
       directives,
       new HashMap<String, List<String>>(),
-      self.getDefaultArgs()
-    );
+      self.getDefaultArgs(),
+      null, -1);
 
     return directives.up();
   }
