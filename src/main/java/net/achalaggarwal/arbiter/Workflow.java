@@ -56,6 +56,7 @@ public class Workflow {
     private String name;
     private String xmlns;
     private List<Action> actions;
+    private List<Decision> decisions = new ArrayList<>();
     private List<Credential> credentials = new ArrayList<>();
     private Action errorHandler;
     private Global global;

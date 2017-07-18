@@ -1,17 +1,17 @@
 package net.achalaggarwal.arbiter.workflow.node;
 
-import net.achalaggarwal.arbiter.Action;
+import net.achalaggarwal.arbiter.YamlElement;
 import net.achalaggarwal.arbiter.workflow.Node;
 import org.xembly.Directives;
 
 import static java.lang.String.format;
 
 public class JoinNode extends Node {
-  private Action self;
-  private Action transitionNode = null;
+  private YamlElement self;
+  private YamlElement transitionNode = null;
 
 
-  public JoinNode(Action self, Action transitionNode) {
+  public JoinNode(YamlElement self, YamlElement transitionNode) {
     if (transitionNode == null) {
       throw new RuntimeException(format("No transition found for join action %s", self.getName()));
     }

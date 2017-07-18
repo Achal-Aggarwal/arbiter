@@ -22,9 +22,15 @@
 package net.achalaggarwal.arbiter;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import net.achalaggarwal.arbiter.config.Prepare;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Represents an Oozie Action
@@ -32,14 +38,13 @@ import java.util.*;
  * @author Andrew Johnson
  */
 @Data
-public class Action {
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public class Action extends YamlElement {
     private String comment;
-    private String name;
-    private String type;
     private String cred;
     private String forceOk;
     private String forceError;
-    private Set<String> dependencies;
     private Map<String, List<String>> positionalArgs;
     private Map<String, String> namedArgs;
     private Map<String, String> properties;

@@ -1,13 +1,13 @@
 package net.achalaggarwal.arbiter.workflow.node;
 
-import net.achalaggarwal.arbiter.Action;
+import net.achalaggarwal.arbiter.YamlElement;
 import net.achalaggarwal.arbiter.workflow.Node;
 import org.xembly.Directives;
 
 public class EndNode extends Node {
-  private Action self = null;
+  private YamlElement self = null;
 
-  public EndNode(Action self) {
+  public EndNode(YamlElement self) {
     this.self = self;
   }
 
