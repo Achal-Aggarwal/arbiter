@@ -70,10 +70,10 @@ public class OozieWorkflowGenerator {
             String inputFileName = inputFile.getName().substring(0, inputFile.getName().lastIndexOf("."));
             Workflow workflow = workflows.get(inputFile);
 
-            DirectedAcyclicGraph<Action, DefaultEdge> workflowGraph = null;
-            DirectedAcyclicGraph<Action, DefaultEdge> inputGraph = null;
+            DirectedAcyclicGraph<YamlElement, DefaultEdge> workflowGraph = null;
+            DirectedAcyclicGraph<YamlElement, DefaultEdge> inputGraph = null;
             try {
-                inputGraph = WorkflowGraphBuilder.buildInputGraph(workflow, config);
+                inputGraph = WorkflowGraphBuilder.buildInputGraph(workflow);
                 workflowGraph = WorkflowGraphBuilder.buildWorkflowGraph(inputGraph, workflow, config);
             } catch (WorkflowGraphException w) {
                 LOG.error("Unable to generate workflow", w);
@@ -91,7 +91,7 @@ public class OozieWorkflowGenerator {
         }
     }
 
-    private void generateGraphs(String graphvizFormat, String parentDir, String inputFileName, DirectedAcyclicGraph<Action, DefaultEdge> workflowGraph, DirectedAcyclicGraph<Action, DefaultEdge> inputGraph) throws IOException {
+    private void generateGraphs(String graphvizFormat, String parentDir, String inputFileName, DirectedAcyclicGraph<YamlElement, DefaultEdge> workflowGraph, DirectedAcyclicGraph<YamlElement, DefaultEdge> inputGraph) throws IOException {
         File dotFilesBaseDir = new File(parentDir, "dot");
         FileUtils.forceMkdir(dotFilesBaseDir);
         String outputDotFilesAbsolutePath = new File(dotFilesBaseDir, inputFileName).getAbsolutePath();

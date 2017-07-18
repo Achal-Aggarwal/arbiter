@@ -3,6 +3,7 @@ package net.achalaggarwal.arbiter.workflow.node;
 import com.google.common.collect.ImmutableMap;
 import net.achalaggarwal.arbiter.Action;
 import net.achalaggarwal.arbiter.ConditionalKill;
+import net.achalaggarwal.arbiter.YamlElement;
 import net.achalaggarwal.arbiter.config.ActionType;
 import net.achalaggarwal.arbiter.util.NodeGen;
 import net.achalaggarwal.arbiter.workflow.Node;
@@ -22,12 +23,12 @@ public class ActionNode extends Node {
   public static final String ARBITER_COMMENT_TAG = "ARBITER-COMMENT";
   private Action self = null;
   private ActionType type = null;
-  private Action transition = null;
-  private Action errorTransition;
+  private YamlElement transition = null;
+  private YamlElement errorTransition;
   private String enclosingForkJoinName;
   private File workflowFile;
 
-  public ActionNode(Action self, ActionType type, Action transition, Action errorTransition, String enclosingForkJoinName, File workflowFile) {
+  public ActionNode(Action self, ActionType type, YamlElement transition, YamlElement errorTransition, String enclosingForkJoinName, File workflowFile) {
     this.self = self;
     this.type = type;
     this.transition = transition;
@@ -106,7 +107,7 @@ public class ActionNode extends Node {
     return directives;
   }
 
-  private void addSwitchIfRequired(Action action, Directives directives, Action transition) {
+  private void addSwitchIfRequired(Action action, Directives directives, YamlElement transition) {
     if (action.getOnlyIf() == null) {
       return;
     }

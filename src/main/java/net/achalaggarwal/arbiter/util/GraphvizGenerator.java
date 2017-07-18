@@ -22,6 +22,7 @@
 package net.achalaggarwal.arbiter.util;
 
 import net.achalaggarwal.arbiter.Action;
+import net.achalaggarwal.arbiter.YamlElement;
 import org.apache.log4j.Logger;
 import org.jgrapht.experimental.dag.DirectedAcyclicGraph;
 import org.jgrapht.ext.DOTExporter;
@@ -29,7 +30,11 @@ import org.jgrapht.ext.EdgeNameProvider;
 import org.jgrapht.ext.VertexNameProvider;
 import org.jgrapht.graph.DefaultEdge;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.List;
 
@@ -50,19 +55,20 @@ public class GraphvizGenerator {
      * @param fileName The name of the DOT file to be generated
      * @param graphvizFormat The format in which Graphviz graphs should be generated if enabled
      */
-    public static void generateGraphviz(DirectedAcyclicGraph<Action, DefaultEdge> graph, String fileName, String graphvizFormat) {
-        DOTExporter<Action, DefaultEdge> exporter = new DOTExporter<>(new VertexNameProvider<Action>() {
+    public static void generateGraphviz(DirectedAcyclicGraph<YamlElement, DefaultEdge> graph, String fileName, String graphvizFormat) {
+        DOTExporter<YamlElement, DefaultEdge> exporter = new DOTExporter<>(new VertexNameProvider<YamlElement>() {
             @Override
-            public String getVertexName(Action o) {
+            public String getVertexName(YamlElement o) {
                 // This must produce a unique id for each vertex
                 // This is never displayed, however
                 return o.hashCode() + "";
             }
-        }, new VertexNameProvider<Action>() {
+        }, new VertexNameProvider<YamlElement>() {
             @Override
-            public String getVertexName(Action o) {
+            public String getVertexName(YamlElement o) {
                 // This is the value displayed in the vertices of the generated graph
-                return o.getOnlyIf() == null ? o.getName() : "if (" + o.getOnlyIf() + ")\n" + o.getName();
+                return o instanceof Action && ((Action) o).getOnlyIf() != null ? "if (" + ((Action) o).getOnlyIf() + ")\n" + o.getName()
+                    : o.getName();
             }
         }, new EdgeNameProvider<DefaultEdge>() {
             @Override

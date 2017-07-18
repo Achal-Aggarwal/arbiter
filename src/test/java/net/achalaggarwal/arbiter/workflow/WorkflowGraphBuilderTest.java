@@ -16,13 +16,14 @@
 
 package net.achalaggarwal.arbiter.workflow;
 
-import net.achalaggarwal.arbiter.Action;
-import net.achalaggarwal.arbiter.Workflow;
-import net.achalaggarwal.arbiter.config.Config;
-import net.achalaggarwal.arbiter.exception.WorkflowGraphException;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Sets;
+import net.achalaggarwal.arbiter.Action;
+import net.achalaggarwal.arbiter.Workflow;
+import net.achalaggarwal.arbiter.YamlElement;
+import net.achalaggarwal.arbiter.config.Config;
+import net.achalaggarwal.arbiter.exception.WorkflowGraphException;
 import org.jgrapht.experimental.dag.DirectedAcyclicGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.junit.Before;
@@ -65,7 +66,7 @@ public class WorkflowGraphBuilderTest {
         workflow.getActions().get(0).setDependencies(Sets.newHashSet("missing"));
         expectedException.expect(WorkflowGraphException.class);
 
-        DirectedAcyclicGraph<Action, DefaultEdge> inputGraph = WorkflowGraphBuilder.buildInputGraph(workflow, config);
+        DirectedAcyclicGraph<YamlElement, DefaultEdge> inputGraph = WorkflowGraphBuilder.buildInputGraph(workflow);
         WorkflowGraphBuilder.buildWorkflowGraph(inputGraph, workflow, config);
     }
 
@@ -74,7 +75,7 @@ public class WorkflowGraphBuilderTest {
         workflow.getActions().get(0).setDependencies(Sets.newHashSet("a2"));
         workflow.getActions().get(1).setDependencies(Sets.newHashSet("a1"));
         expectedException.expect(WorkflowGraphException.class);
-        DirectedAcyclicGraph<Action, DefaultEdge> inputGraph = WorkflowGraphBuilder.buildInputGraph(workflow, config);
+        DirectedAcyclicGraph<YamlElement, DefaultEdge> inputGraph = WorkflowGraphBuilder.buildInputGraph(workflow);
         WorkflowGraphBuilder.buildWorkflowGraph(inputGraph, workflow, config);
     }
 
@@ -82,14 +83,14 @@ public class WorkflowGraphBuilderTest {
     public void testSelfEdge() throws WorkflowGraphException {
         workflow.getActions().get(0).setDependencies(Sets.newHashSet("a1"));
         expectedException.expect(IllegalArgumentException.class);
-        DirectedAcyclicGraph<Action, DefaultEdge> inputGraph = WorkflowGraphBuilder.buildInputGraph(workflow, config);
+        DirectedAcyclicGraph<YamlElement, DefaultEdge> inputGraph = WorkflowGraphBuilder.buildInputGraph(workflow);
         WorkflowGraphBuilder.buildWorkflowGraph(inputGraph, workflow, config);
     }
 
     @Test
     public void testNoDependencies() throws WorkflowGraphException {
-        DirectedAcyclicGraph<Action, DefaultEdge> inputGraph = WorkflowGraphBuilder.buildInputGraph(workflow, config);
-        DirectedAcyclicGraph<Action, DefaultEdge> graph = WorkflowGraphBuilder.buildWorkflowGraph(inputGraph, workflow, config);
+        DirectedAcyclicGraph<YamlElement, DefaultEdge> inputGraph = WorkflowGraphBuilder.buildInputGraph(workflow);
+        DirectedAcyclicGraph<YamlElement, DefaultEdge> graph = WorkflowGraphBuilder.buildWorkflowGraph(inputGraph, workflow, config);
         Set<String> expectedVertices = Sets.newHashSet("a1", "a2", "a3", "start", "end", "kill", "fork-0", "join-0");
         Set<String> expectedEdges = Sets.newHashSet("a3:join-0", "join-0:end", "a1:join-0", "fork-0:a2", "fork-0:a1", "a2:join-0", "fork-0:a3", "start:fork-0");
         assertEquals(expectedVertices, getVertices(graph));
@@ -99,8 +100,8 @@ public class WorkflowGraphBuilderTest {
     @Test
     public void testTwoActionFork() throws WorkflowGraphException {
         workflow.getActions().get(2).setDependencies(Sets.newHashSet("a1", "a2"));
-        DirectedAcyclicGraph<Action, DefaultEdge> inputGraph = WorkflowGraphBuilder.buildInputGraph(workflow, config);
-        DirectedAcyclicGraph<Action, DefaultEdge> graph = WorkflowGraphBuilder.buildWorkflowGraph(inputGraph, workflow, config);
+        DirectedAcyclicGraph<YamlElement, DefaultEdge> inputGraph = WorkflowGraphBuilder.buildInputGraph(workflow);
+        DirectedAcyclicGraph<YamlElement, DefaultEdge> graph = WorkflowGraphBuilder.buildWorkflowGraph(inputGraph, workflow, config);
         Set<String> expectedVertices = Sets.newHashSet("a1", "a2", "a3", "start", "end", "kill", "fork-0", "join-0");
         Set<String> expectedEdges = Sets.newHashSet("start:fork-0", "fork-0:a1", "fork-0:a2", "a1:join-0", "a2:join-0", "join-0:a3", "a3:end");
         assertEquals(expectedVertices, getVertices(graph));
@@ -111,8 +112,8 @@ public class WorkflowGraphBuilderTest {
     public void testSingleStartNode() throws WorkflowGraphException {
         workflow.getActions().get(1).setDependencies(Sets.newHashSet("a1"));
         workflow.getActions().get(2).setDependencies(Sets.newHashSet("a1"));
-        DirectedAcyclicGraph<Action, DefaultEdge> inputGraph = WorkflowGraphBuilder.buildInputGraph(workflow, config);
-        DirectedAcyclicGraph<Action, DefaultEdge> graph = WorkflowGraphBuilder.buildWorkflowGraph(inputGraph, workflow, config);
+        DirectedAcyclicGraph<YamlElement, DefaultEdge> inputGraph = WorkflowGraphBuilder.buildInputGraph(workflow);
+        DirectedAcyclicGraph<YamlElement, DefaultEdge> graph = WorkflowGraphBuilder.buildWorkflowGraph(inputGraph, workflow, config);
         Set<String> expectedVertices = Sets.newHashSet("a1", "a2", "a3", "start", "end", "kill", "fork-0", "join-0");
         Set<String> expectedEdges = Sets.newHashSet("fork-0:a2", "a3:join-0", "fork-0:a3", "start:a1", "a2:join-0", "join-0:end", "a1:fork-0");
         assertEquals(expectedVertices, getVertices(graph));
@@ -123,8 +124,8 @@ public class WorkflowGraphBuilderTest {
     public void testChain() throws WorkflowGraphException {
         workflow.getActions().get(1).setDependencies(Sets.newHashSet("a1"));
         workflow.getActions().get(2).setDependencies(Sets.newHashSet("a2"));
-        DirectedAcyclicGraph<Action, DefaultEdge> inputGraph = WorkflowGraphBuilder.buildInputGraph(workflow, config);
-        DirectedAcyclicGraph<Action, DefaultEdge> graph = WorkflowGraphBuilder.buildWorkflowGraph(inputGraph, workflow, config);
+        DirectedAcyclicGraph<YamlElement, DefaultEdge> inputGraph = WorkflowGraphBuilder.buildInputGraph(workflow);
+        DirectedAcyclicGraph<YamlElement, DefaultEdge> graph = WorkflowGraphBuilder.buildWorkflowGraph(inputGraph, workflow, config);
         Set<String> expectedVertices = Sets.newHashSet("a1", "a2", "a3", "start", "end", "kill");
         Set<String> expectedEdges = Sets.newHashSet("start:a1", "a1:a2", "a2:a3", "a3:end");
         assertEquals(expectedVertices, getVertices(graph));
@@ -134,24 +135,24 @@ public class WorkflowGraphBuilderTest {
     @Test
     public void testDisconnectedComponents() throws WorkflowGraphException {
         workflow.getActions().get(2).setDependencies(Sets.newHashSet("a2"));
-        DirectedAcyclicGraph<Action, DefaultEdge> inputGraph = WorkflowGraphBuilder.buildInputGraph(workflow, config);
-        DirectedAcyclicGraph<Action, DefaultEdge> graph = WorkflowGraphBuilder.buildWorkflowGraph(inputGraph, workflow, config);
+        DirectedAcyclicGraph<YamlElement, DefaultEdge> inputGraph = WorkflowGraphBuilder.buildInputGraph(workflow);
+        DirectedAcyclicGraph<YamlElement, DefaultEdge> graph = WorkflowGraphBuilder.buildWorkflowGraph(inputGraph, workflow, config);
         Set<String> expectedVertices = Sets.newHashSet("a1", "a2", "a3", "start", "end", "kill", "fork-0", "join-0");
         Set<String> expectedEdges = Sets.newHashSet("a3:join-0", "a2:a3", "join-0:end", "a1:join-0", "fork-0:a2", "fork-0:a1", "start:fork-0");
         assertEquals(expectedVertices, getVertices(graph));
         assertEquals(expectedEdges, getEdges(graph));
     }
 
-    private Set<String> getVertices(final DirectedAcyclicGraph<Action, DefaultEdge> graph) {
-        return Sets.newHashSet(Collections2.transform(graph.vertexSet(), new Function<Action, String>() {
+    private Set<String> getVertices(final DirectedAcyclicGraph<YamlElement, DefaultEdge> graph) {
+        return Sets.newHashSet(Collections2.transform(graph.vertexSet(), new Function<YamlElement, String>() {
             @Override
-            public String apply(Action input) {
+            public String apply(YamlElement input) {
                 return input.getName();
             }
         }));
     }
 
-    private Set<String> getEdges(final DirectedAcyclicGraph<Action, DefaultEdge> graph) {
+    private Set<String> getEdges(final DirectedAcyclicGraph<YamlElement, DefaultEdge> graph) {
         return Sets.newHashSet(Collections2.transform(graph.edgeSet(), new Function<DefaultEdge, String>() {
             @Override
             public String apply(DefaultEdge input) {

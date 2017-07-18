@@ -3,7 +3,7 @@ package net.achalaggarwal.arbiter.util;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
-import net.achalaggarwal.arbiter.Action;
+import net.achalaggarwal.arbiter.YamlElement;
 import net.achalaggarwal.arbiter.workflow.node.ConfigurationNode;
 import net.achalaggarwal.arbiter.workflow.node.PrepareNode;
 import org.jgrapht.experimental.dag.DirectedAcyclicGraph;
@@ -86,10 +86,10 @@ public class NodeGen {
    * @param type The type of action to find
    * @return The action of the given type, or null if none exists
    */
-  public static Action getActionByType(DirectedAcyclicGraph<Action, DefaultEdge> workflowGraph, final String type) {
-    List<Action> actionList = Lists.newArrayList(Collections2.filter(workflowGraph.vertexSet(), new Predicate<Action>() {
+  public static YamlElement getActionByType(DirectedAcyclicGraph<YamlElement, DefaultEdge> workflowGraph, final String type) {
+    List<YamlElement> actionList = Lists.newArrayList(Collections2.filter(workflowGraph.vertexSet(), new Predicate<YamlElement>() {
       @Override
-      public boolean apply(Action input) {
+      public boolean apply(YamlElement input) {
         return input.getType().equals(type);
       }
     }));

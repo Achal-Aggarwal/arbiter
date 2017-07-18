@@ -2,12 +2,22 @@ package net.achalaggarwal.arbiter.workflow;
 
 import com.google.common.collect.Lists;
 import net.achalaggarwal.arbiter.Action;
+import net.achalaggarwal.arbiter.Decision;
 import net.achalaggarwal.arbiter.Workflow;
+import net.achalaggarwal.arbiter.YamlElement;
 import net.achalaggarwal.arbiter.config.ActionType;
 import net.achalaggarwal.arbiter.config.Config;
 import net.achalaggarwal.arbiter.config.Credential;
 import net.achalaggarwal.arbiter.config.Global;
-import net.achalaggarwal.arbiter.workflow.node.*;
+import net.achalaggarwal.arbiter.workflow.node.ActionNode;
+import net.achalaggarwal.arbiter.workflow.node.CredentialNode;
+import net.achalaggarwal.arbiter.workflow.node.EndNode;
+import net.achalaggarwal.arbiter.workflow.node.ForkNode;
+import net.achalaggarwal.arbiter.workflow.node.GlobalNode;
+import net.achalaggarwal.arbiter.workflow.node.JoinNode;
+import net.achalaggarwal.arbiter.workflow.node.KillNode;
+import net.achalaggarwal.arbiter.workflow.node.StartNode;
+import net.achalaggarwal.arbiter.workflow.node.SwitchNode;
 import org.jgrapht.experimental.dag.DirectedAcyclicGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.traverse.DepthFirstIterator;
@@ -15,6 +25,7 @@ import org.xembly.Directives;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -22,12 +33,12 @@ import static net.achalaggarwal.arbiter.util.NodeGen.getActionByType;
 
 public class WorkflowNode {
   private Workflow workflow;
-  private DirectedAcyclicGraph<Action, DefaultEdge> workflowGraph;
+  private DirectedAcyclicGraph<YamlElement, DefaultEdge> workflowGraph;
   private Config config;
   private File inputFile;
 
 
-  public WorkflowNode(Workflow workflow, DirectedAcyclicGraph<Action, DefaultEdge> workflowGraph, Config config, File inputFile) {
+  public WorkflowNode(Workflow workflow, DirectedAcyclicGraph<YamlElement, DefaultEdge> workflowGraph, Config config, File inputFile) {
     this.workflow = workflow;
     this.workflowGraph = workflowGraph;
     this.config = config;
@@ -41,18 +52,18 @@ public class WorkflowNode {
     addGlobal(config, workflow, directives);
     addCredentials(config, workflow, directives);
 
-    Action kill = getActionByType(workflowGraph, "kill");
-    Action end = getActionByType(workflowGraph, "end");
-    Action start = getActionByType(workflowGraph, "start");
-    Action errorHandler = workflow.getErrorHandler();
-    Action finalTransition = kill == null ? end : kill;
-    Action errorTransition = errorHandler == null ? finalTransition : errorHandler;
+    YamlElement kill = getActionByType(workflowGraph, "kill");
+    YamlElement end = getActionByType(workflowGraph, "end");
+    YamlElement start = getActionByType(workflowGraph, "start");
+    YamlElement errorHandler = workflow.getErrorHandler();
+    YamlElement finalTransition = kill == null ? end : kill;
+    YamlElement errorTransition = errorHandler == null ? finalTransition : errorHandler;
 
-    DepthFirstIterator<Action, DefaultEdge> iterator = new DepthFirstIterator<>(workflowGraph, start);
+    DepthFirstIterator<YamlElement, DefaultEdge> iterator = new DepthFirstIterator<>(workflowGraph, start);
 
     while (iterator.hasNext()) {
-      Action a = iterator.next();
-      Action transition = getTransition(workflowGraph, a);
+      YamlElement a = iterator.next();
+      YamlElement transition = getTransition(workflowGraph, a);
       switch (a.getType()) {
         case "start":
           new StartNode(transition).appendTo(directives);
@@ -70,9 +81,18 @@ public class WorkflowNode {
         case "join":
           new JoinNode(a, transition).appendTo(directives);
           break;
+        case "decision":
+          Decision decision = (Decision) a;
+          LinkedHashMap<String, String> cases = new LinkedHashMap<>();
+          List<LinkedHashMap<String, String>> casesList = decision.getCases();
+          for (LinkedHashMap<String, String> casesMap : casesList) {
+            cases.putAll(casesMap);
+          }
+          new SwitchNode(a.getName(), cases, decision.getDefaultTo()).appendTo(directives);
+          break;
         default:
           new ActionNode(
-            a,
+            (Action) a,
             getActionType(a.getType()),
             transition,
             errorTransition,
@@ -83,7 +103,7 @@ public class WorkflowNode {
       }
     }
     if (kill != null) {
-      new KillNode(kill).appendTo(directives);
+      new KillNode((Action) kill).appendTo(directives);
     }
     if (end != null) {
       new EndNode(end).appendTo(directives);
@@ -126,7 +146,7 @@ public class WorkflowNode {
    * @param a The action for which to get the transition
    * @return The OK transition for the given action
    */
-  private static Action getTransition(DirectedAcyclicGraph<Action, DefaultEdge> workflowGraph, Action a) {
+  private static YamlElement getTransition(DirectedAcyclicGraph<YamlElement, DefaultEdge> workflowGraph, YamlElement a) {
     Set<DefaultEdge> transitions = workflowGraph.outgoingEdgesOf(a);
     // end and kill nodes do not transition at all
     // forks have multiple transitions and are handled specially
@@ -151,7 +171,7 @@ public class WorkflowNode {
    * @param workflowGraph The graph in which to find the enclosing fork/join pair
    * @return The name of the join for the fork/join pair enclosing the given action, or null if the action is not inside a fork/join
    */
-  private static String getEnclosingForkJoinName(Action action, DirectedAcyclicGraph<Action, DefaultEdge> workflowGraph) {
+  private static String getEnclosingForkJoinName(YamlElement action, DirectedAcyclicGraph<YamlElement, DefaultEdge> workflowGraph) {
     List<String> forks = new ArrayList<>();
     List<String> joins = new ArrayList<>();
 
@@ -165,7 +185,7 @@ public class WorkflowNode {
     }
 
     // First we traverse backwards from the given action, recording all the forks we see
-    Action curr = action;
+    YamlElement curr = action;
     while (workflowGraph.inDegreeOf(curr) > 0) {
       DefaultEdge incoming = Lists.newArrayList(workflowGraph.incomingEdgesOf(curr)).get(0);
       curr = workflowGraph.getEdgeSource(incoming);
